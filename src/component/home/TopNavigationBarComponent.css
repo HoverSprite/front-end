@@ -1,0 +1,24 @@
+.top-navigation-bar {
+    position: fixed;
+    /* Fix the position at the top */
+    top: 0;
+    /* Align to the top of the viewport */
+    left: 0;
+    /* Align to the left of the viewport */
+    width: 100%;
+    /* Full width */
+    background-color: white;
+    /* Background color to cover content behind */
+    z-index: 1000;
+    /* High z-index to ensure it is above other elements */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Optional: Add a shadow for better visibility */
+    display: flex;
+    /* Use flexbox to align content */
+    justify-content: center;
+    /* Center content horizontally */
+    align-items: center;
+    /* Center content vertically */
+    height: 60px;
+    /* Set a fixed height if needed */
+}

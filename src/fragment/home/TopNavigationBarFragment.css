@@ -1,0 +1,55 @@
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    /* Space out the navs */
+    align-items: center;
+    /* Center align items vertically */
+    padding: 0 20px;
+    /* Add padding to left and right */
+}
+
+.content-container {
+    max-width: 1200px;
+    /* Maximum width for the content */
+    width: 100%;
+    /* Full width of the container */
+    padding: 0 20px;
+    /* Padding on the left and right */
+    box-sizing: border-box;
+    /* Include padding in the element's total width and height */
+}
+
+.left-nav {
+    flex: 1;
+    /* Take up available space */
+}
+
+.center-nav {
+    flex: 1;
+    /* Take up available space */
+    justify-content: center;
+    /* Center align items horizontally */
+}
+
+.right-nav {
+    flex: 1;
+    /* Take up available space */
+    justify-content: flex-end;
+    /* Align items to the right */
+    display: flex;
+}
+
+.centered-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    /* Adjust as needed */
+    color: rgba(0, 0, 0, 0.1);
+    /* Light color to appear like a background */
+    z-index: -1;
+    /* Ensure it is behind other elements */
+    pointer-events: none;
+    /* So it doesn't interfere with other elements */
+}

@@ -1,0 +1,31 @@
+.description-container {
+    display: flex;
+    justify-content: space-between;
+    /* Distribute space between text and image */
+    align-items: center;
+    /* Vertically center the content */
+    width: 100vw;
+    /* Ensure the container takes the full width */
+    padding: 0 400px;
+}
+
+.text-content {
+    flex: 1;
+    text-align: left;
+    /* Align text to the left */
+    margin-right: 100px;
+    /* Add margin to the right to separate from the image */
+}
+
+.image-content {
+    flex: 0 0 auto;
+    /* Ensure the image container doesn't shrink */
+}
+
+.image-content img {
+    width: 500px;
+    /* Adjust the width as needed */
+    height: auto;
+    display: block;
+    /* Ensure the image is displayed as a block element */
+}
