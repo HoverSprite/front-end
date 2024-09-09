@@ -28,7 +28,7 @@ export const verify = async (url) => {
     });
 
     // let otc = localStorage.getItem("otc");
-    let otc = "478310";
+    let otc = "868476";
     try {
         await delay(1000);
         const response = await custom_api.post(``, { otp: otc });
