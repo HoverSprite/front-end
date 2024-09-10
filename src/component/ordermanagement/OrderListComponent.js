@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faWheatAlt, faSeedling, faBowlRice, faLeaf } from '@fortawesome/free-solid-svg-icons';
 
 // Sample data
 const orders = [
@@ -33,6 +35,34 @@ const cropTypeColors = {
     Rye: '#D4A6A8',
     Millet: '#F5E0B7',
 };
+
+const sprayStatusSteps = ['PENDING', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'SPRAY_COMPLETED', 'COMPLETED'];
+
+const Milestone = ({ steps, currentStep }) => (
+    <div style={milestoneStyles.container}>
+        {steps.map((step, index) => (
+            <div key={index} style={milestoneStyles.stepContainer}>
+                <div
+                    style={{
+                        ...milestoneStyles.circle,
+                        backgroundColor: currentStep >= index ? '#28a745' : '#d3d3d3',
+                    }}
+                >
+                    {currentStep > index ? '✔️' : index + 1}
+                </div>
+                {index < steps.length - 1 && (
+                    <div
+                        style={{
+                            ...milestoneStyles.line,
+                            backgroundColor: currentStep > index ? '#28a745' : '#d3d3d3',
+                        }}
+                    />
+                )}
+                <span style={milestoneStyles.stepLabel}>{step}</span>
+            </div>
+        ))}
+    </div>
+);
 
 function OrderListComponent() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -76,56 +106,64 @@ function OrderListComponent() {
 
     const paginatedOrders = sortedOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+    const getSprayStatusProgress = (status) => {
+        return sprayStatusSteps.indexOf(status);
+    };
+
+    const getCropIcon = (cropType) => {
+        switch (cropType.toLowerCase()) {
+            case 'wheat':
+            case 'barley':
+            case 'rye':
+                return faWheatAlt;
+            case 'corn':
+            case 'oats':
+            case 'millet':
+                return faSeedling;
+            case 'rice':
+                return faBowlRice;
+            case 'soybean':
+            default:
+                return faLeaf;
+        }
+    };
+
     return (
         <div style={styles.container}>
-            <div style={styles.toolsContainer}>
-                <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    style={styles.searchInput}
-                />
-                <select
-                    value={selectedStatus}
-                    onChange={handleStatusChange}
-                    style={styles.filterSelect}
-                >
-                    <option value="All">All Statuses</option>
-                    {Object.keys(statusColors).map(status => (
-                        <option key={status} value={status}>{status}</option>
-                    ))}
-                </select>
-                <select
-                    value={sortOption}
-                    onChange={handleSortChange}
-                    style={styles.sortSelect}
-                >
-                    <option value="date">Sort by Date</option>
-                    <option value="area">Sort by Area</option>
-                </select>
-            </div>
+            {/* ... (keep the existing toolsContainer) */}
             {paginatedOrders.map(order => (
                 <div key={order.id} style={styles.card}>
-                    <div style={styles.header}>
-                        <span style={{ ...styles.cropType, color: cropTypeColors[order.cropType] }}>
+                    <div style={styles.cardHeader}>
+                        <FontAwesomeIcon icon={getCropIcon(order.cropType)} style={styles.cropIcon} />
+                        <span style={{ ...styles.cropType, backgroundColor: cropTypeColors[order.cropType] }}>
                             {order.cropType}
-                        </span>
-                        <span style={{ ...styles.status, color: statusColors[order.status] }}>
-                            {order.status}
                         </span>
                     </div>
                     <h3 style={styles.title}>{`Order #${order.id}`}</h3>
                     <p style={styles.details}>{`Area: ${order.area} hectares`}</p>
                     <p style={styles.details}>{`Location: ${order.location}`}</p>
+                    <p style={styles.details}>{`Date: ${new Date().toLocaleDateString()}`}</p>
+                    <Milestone steps={sprayStatusSteps} currentStep={getSprayStatusProgress(order.status)} />
                 </div>
             ))}
             <div style={styles.pagination}>
-                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={styles.pageButton}>
                     Previous
                 </button>
-                <span>{`Page ${currentPage}`}</span>
-                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage * itemsPerPage >= sortedOrders.length}>
+                {Array.from({ length: Math.ceil(sortedOrders.length / itemsPerPage) }, (_, i) => (
+                    <button 
+                        key={i} 
+                        onClick={() => handlePageChange(i + 1)} 
+                        style={{
+                            ...styles.pageButton,
+                            backgroundColor: currentPage === i + 1 ? '#007BFF' : 'white',
+                            color: currentPage === i + 1 ? 'white' : '#007BFF'
+                        }}
+                    >
+                        {i + 1}
+                    </button>
+                ))}
+                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage * itemsPerPage >= sortedOrders.length} style={styles.pageButton}>
                     Next
                 </button>
             </div>
@@ -133,97 +171,112 @@ function OrderListComponent() {
     );
 }
 
+const milestoneStyles = {
+    container: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        margin: '16px 0',
+        position: 'relative',
+    },
+    stepContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        flexDirection: 'column',
+        flex: 1,
+        position: 'relative',
+        zIndex: 1,
+    },
+    circle: {
+        width: '28px',
+        height: '28px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 'bold',
+        color: '#fff',
+        fontSize: '16px',
+    },
+    line: {
+        position: 'absolute',
+        top: '25%',
+        left: '53%',
+        width: '100%',
+        height: '2px',
+        // transform: 'translateY(-50%)',
+        zIndex: -1,
+    },
+    stepLabel: {
+        marginTop: '8px',
+        fontSize: '12px',
+        textAlign: 'center',
+    },
+};
+
 const styles = {
     container: {
         margin: '0',
-        padding: '0',
+        padding: '20px',
         width: '100%',
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '16px',
-        boxSizing: 'border-box',
-        backgroundColor: '#f8f8f8',
+        justifyContent: 'center',
+        fontFamily: 'Arial, sans-serif',
+        backgroundColor: '#f9f9f9',
     },
     toolsContainer: {
         display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        marginBottom: '16px',
-    },
-    searchInput: {
-        padding: '12px',
-        borderRadius: '8px',
-        border: '1px solid #ddd',
-        fontSize: '16px',
-        flex: '1',
-        marginRight: '8px',
-    },
-    filterSelect: {
-        padding: '12px',
-        borderRadius: '8px',
-        border: '1px solid #ddd',
-        fontSize: '16px',
-        marginRight: '8px',
-        maxWidth: '110px'
-    },
-    sortSelect: {
-        padding: '12px',
-        borderRadius: '8px',
-        border: '1px solid #ddd',
-        fontSize: '16px',
-        maxWidth: '110px'
+        justifyContent: 'space-between',
+        width: '80%',
+        marginBottom: '20px',
     },
     card: {
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+        backgroundColor: '#fff',
+        borderRadius: '10px',
+        padding: '20px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         width: '100%',
-        padding: '16px',
-        marginBottom: '16px',
-        boxSizing: 'border-box',
-        position: 'relative',
+        marginBottom: '20px',
     },
-    header: {
-        position: 'absolute',
-        top: '16px',
-        right: '16px',
+    cardHeader: {
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    cropIcon: {
+        fontSize: '24px',
     },
     cropType: {
-        fontSize: '12px',
-        fontWeight: '600',
-        marginBottom: '4px',
-    },
-    status: {
-        fontSize: '12px',
-        color: 'white',
-    },
-    title: {
-        margin: '0',
-        fontSize: '18px',
-        fontWeight: '600',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        padding: '5px 10px',
+        borderRadius: '5px',
         color: '#333',
     },
+    title: {
+        fontSize: '18px',
+        margin: '10px 0',
+    },
     details: {
-        margin: '8px 0',
         fontSize: '14px',
-        color: '#666',
+        color: '#555',
     },
     pagination: {
         display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        maxWidth: '800px',
         justifyContent: 'center',
-        marginTop: '16px',
+        margin: '20px 0',
+    },
+    pageButton: {
+        margin: '0 5px',
+        padding: '8px 16px',
+        border: 'none',
+        backgroundColor: 'white',
+        color: '#007BFF',
+        borderRadius: '4px',
+        cursor: 'pointer',
     },
 };
-
 export default OrderListComponent;
-
