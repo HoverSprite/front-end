@@ -1,282 +1,263 @@
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faWheatAlt, faSeedling, faBowlRice, faLeaf } from '@fortawesome/free-solid-svg-icons';
+import React, { useState, useEffect } from 'react';
+import { Search, Bell, ChevronDown, Download, Edit, MessageCircle, MapPin, Calendar, Users, Crop, DollarSign, Eye } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { getListOfOrders } from '../../service/DataService';
+import { useNavigate } from 'react-router-dom';
 
-// Sample data
-const orders = [
-    { id: 1, cropType: 'Wheat', area: '50.00', status: 'PENDING', location: 'Field A' },
-    { id: 2, cropType: 'Corn', area: '30.00', status: 'CONFIRMED', location: 'Field B' },
-    { id: 3, cropType: 'Soybean', area: '25.00', status: 'IN_PROGRESS', location: 'Field C' },
-    { id: 4, cropType: 'Rice', area: '40.00', status: 'COMPLETED', location: 'Field D' },
-    { id: 5, cropType: 'Barley', area: '10.00', status: 'CANCELLED', location: 'Field E' },
-    { id: 6, cropType: 'Oats', area: '15.00', status: 'ASSIGNED', location: 'Field F' },
-    { id: 7, cropType: 'Rye', area: '35.00', status: 'SPRAY_COMPLETED', location: 'Field G' },
-    { id: 8, cropType: 'Millet', area: '20.00', status: 'ASSIGN_PROCESSING', location: 'Field H' },
-];
+const OrderListManagement = () => {
+  const [orders, setOrders] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const ordersPerPage = 10;
+  const navigate = useNavigate();
 
-const statusColors = {
-    PENDING: '#FFC107',
-    CANCELLED: '#DC3545',
-    CONFIRMED: '#17A2B8',
-    ASSIGN_PROCESSING: '#6C757D',
-    ASSIGNED: '#28A745',
-    IN_PROGRESS: '#FFC107',
-    SPRAY_COMPLETED: '#007BFF',
-    COMPLETED: '#343A40',
-};
-
-const cropTypeColors = {
-    Wheat: '#F0E5CF',
-    Corn: '#F7E3A1',
-    Soybean: '#D9F0A5',
-    Rice: '#F5F5F5',
-    Barley: '#F3D5AB',
-    Oats: '#E2C8B9',
-    Rye: '#D4A6A8',
-    Millet: '#F5E0B7',
-};
-
-const sprayStatusSteps = ['PENDING', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'SPRAY_COMPLETED', 'COMPLETED'];
-
-const Milestone = ({ steps, currentStep }) => (
-    <div style={milestoneStyles.container}>
-        {steps.map((step, index) => (
-            <div key={index} style={milestoneStyles.stepContainer}>
-                <div
-                    style={{
-                        ...milestoneStyles.circle,
-                        backgroundColor: currentStep >= index ? '#28a745' : '#d3d3d3',
-                    }}
-                >
-                    {currentStep > index ? '✔️' : index + 1}
-                </div>
-                {index < steps.length - 1 && (
-                    <div
-                        style={{
-                            ...milestoneStyles.line,
-                            backgroundColor: currentStep > index ? '#28a745' : '#d3d3d3',
-                        }}
-                    />
-                )}
-                <span style={milestoneStyles.stepLabel}>{step}</span>
-            </div>
-        ))}
-    </div>
-);
-
-function OrderListComponent() {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedStatus, setSelectedStatus] = useState('All');
-    const [sortOption, setSortOption] = useState('date');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
-
-    const handleSearch = (event) => {
-        setSearchTerm(event.target.value);
-    };
-
-    const handleStatusChange = (event) => {
-        setSelectedStatus(event.target.value);
-    };
-
-    const handleSortChange = (event) => {
-        setSortOption(event.target.value);
-    };
-
-    const handlePageChange = (page) => {
-        setCurrentPage(page);
-    };
-
-    const filteredOrders = orders.filter(order => {
-        const matchesSearch = order.cropType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.location.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = selectedStatus === 'All' || order.status === selectedStatus;
-        return matchesSearch && matchesStatus;
-    });
-
-    const sortedOrders = filteredOrders.sort((a, b) => {
-        if (sortOption === 'date') {
-            return new Date(b.date) - new Date(a.date);
-        } else if (sortOption === 'area') {
-            return b.area - a.area;
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await getListOfOrders();
+        console.log(response);
+        // The data is already parsed, so we don't need to call response.json()
+        if (response.status === 200 && response.data) {
+          setOrders(response.data);
         } else {
-            return 0;
+          console.error('Unexpected response structure:', response);
         }
-    });
-
-    const paginatedOrders = sortedOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-    const getSprayStatusProgress = (status) => {
-        return sprayStatusSteps.indexOf(status);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      }
     };
+  
+    fetchOrders();
+  }, []);
 
-    const getCropIcon = (cropType) => {
-        switch (cropType.toLowerCase()) {
-            case 'wheat':
-            case 'barley':
-            case 'rye':
-                return faWheatAlt;
-            case 'corn':
-            case 'oats':
-            case 'millet':
-                return faSeedling;
-            case 'rice':
-                return faBowlRice;
-            case 'soybean':
-            default:
-                return faLeaf;
-        }
+  const filteredOrders = orders.filter(order =>
+    Object.values(order).some(value =>
+      value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
+  const handleViewDetails = (orderId) => {
+    navigate(`/order-detail?orderId=${orderId}`);
+  };
+
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const StatusBadge = ({ status }) => {
+    const colorMap = {
+      'PENDING': 'bg-yellow-100 text-yellow-800',
+      'CONFIRMED': 'bg-blue-100 text-blue-800',
+      'COMPLETED': 'bg-green-100 text-green-800',
+      'CANCELLED': 'bg-red-100 text-red-800',
     };
 
     return (
-        <div style={styles.container}>
-            {/* ... (keep the existing toolsContainer) */}
-            {paginatedOrders.map(order => (
-                <div key={order.id} style={styles.card}>
-                    <div style={styles.cardHeader}>
-                        <FontAwesomeIcon icon={getCropIcon(order.cropType)} style={styles.cropIcon} />
-                        <span style={{ ...styles.cropType, backgroundColor: cropTypeColors[order.cropType] }}>
-                            {order.cropType}
-                        </span>
-                    </div>
-                    <h3 style={styles.title}>{`Order #${order.id}`}</h3>
-                    <p style={styles.details}>{`Area: ${order.area} hectares`}</p>
-                    <p style={styles.details}>{`Location: ${order.location}`}</p>
-                    <p style={styles.details}>{`Date: ${new Date().toLocaleDateString()}`}</p>
-                    <Milestone steps={sprayStatusSteps} currentStep={getSprayStatusProgress(order.status)} />
-                </div>
-            ))}
-            <div style={styles.pagination}>
-                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={styles.pageButton}>
-                    Previous
-                </button>
-                {Array.from({ length: Math.ceil(sortedOrders.length / itemsPerPage) }, (_, i) => (
-                    <button 
-                        key={i} 
-                        onClick={() => handlePageChange(i + 1)} 
-                        style={{
-                            ...styles.pageButton,
-                            backgroundColor: currentPage === i + 1 ? '#007BFF' : 'white',
-                            color: currentPage === i + 1 ? 'white' : '#007BFF'
-                        }}
-                    >
-                        {i + 1}
-                    </button>
-                ))}
-                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage * itemsPerPage >= sortedOrders.length} style={styles.pageButton}>
-                    Next
-                </button>
-            </div>
-        </div>
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorMap[status] || 'bg-gray-100 text-gray-800'}`}>
+        {status}
+      </span>
     );
-}
+  };
 
-const milestoneStyles = {
-    container: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        margin: '16px 0',
-        position: 'relative',
-    },
-    stepContainer: {
-        display: 'flex',
-        alignItems: 'center',
-        flexDirection: 'column',
-        flex: 1,
-        position: 'relative',
-        zIndex: 1,
-    },
-    circle: {
-        width: '28px',
-        height: '28px',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 'bold',
-        color: '#fff',
-        fontSize: '16px',
-    },
-    line: {
-        position: 'absolute',
-        top: '25%',
-        left: '53%',
-        width: '100%',
-        height: '2px',
-        // transform: 'translateY(-50%)',
-        zIndex: -1,
-    },
-    stepLabel: {
-        marginTop: '8px',
-        fontSize: '12px',
-        textAlign: 'center',
-    },
+  const OrderCard = ({ order }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white p-4 rounded-lg shadow-md mb-4 sm:hidden w-full"
+    >
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <h3 className="text-lg font-semibold">Order ID: {order.id}</h3>
+          <p className="text-sm text-gray-500">{new Date(order.dateTime).toLocaleString()}</p>
+        </div>
+        <StatusBadge status={order.status} />
+      </div>
+      <div className="grid grid-cols-2 gap-2 mb-2">
+        <div className="flex items-center">
+          <Crop size={16} className="text-green-600 mr-2" />
+          <span className="text-sm">{order.cropType}</span>
+        </div>
+        <div className="flex items-center">
+          <MapPin size={16} className="text-blue-600 mr-2" />
+          <span className="text-sm">{order.area} m²</span>
+        </div>
+        <div className="flex items-center">
+          <DollarSign size={16} className="text-yellow-600 mr-2" />
+          <span className="text-sm">${order.cost.toLocaleString()}</span>
+        </div>
+        <div className="flex items-center">
+          <Calendar size={16} className="text-purple-600 mr-2" />
+          <span className="text-sm">Session ID: {order.spraySession}</span>
+        </div>
+      </div>
+      <div className="flex items-center mb-2">
+        <Users size={16} className="text-gray-600 mr-2" />
+        <span className="text-sm">Farmer ID: {order.farmer}</span>
+      </div>
+      <div className="flex justify-end space-x-2">
+        <button className="text-blue-600 hover:text-blue-800">
+          <Edit size={16} />
+        </button>
+        <button className="text-gray-600 hover:text-gray-800">
+          <Download size={16} />
+        </button>
+        <button className="text-green-600 hover:text-green-800">
+          <MessageCircle size={16} />
+        </button>
+        <button 
+          className="text-purple-600 hover:text-purple-800"
+          onClick={() => handleViewDetails(order.id)}
+        >
+          <Eye size={16} />
+        </button>
+      </div>
+      
+    </motion.div>
+  );
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      <div className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
+            <div className="flex items-center space-x-4">
+              <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition duration-300">
+                + New Order
+              </button>
+              <Search className="text-gray-500" />
+              <Bell className="text-gray-500" />
+              <div className="flex items-center">
+                <img src="/api/placeholder/32/32" alt="User" className="w-8 h-8 rounded-full mr-2" />
+                <ChevronDown className="text-gray-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+          <div className="relative w-full sm:w-auto">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search orders"
+              className="pl-10 pr-4 py-2 border rounded-md w-full sm:w-64"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex space-x-2 w-full sm:w-auto">
+            <button className="px-4 py-2 border rounded-md flex items-center justify-center w-full sm:w-auto">
+              Filters <ChevronDown className="ml-2" />
+            </button>
+            <button className="px-4 py-2 border rounded-md flex items-center justify-center w-full sm:w-auto">
+              Sort <ChevronDown className="ml-2" />
+            </button>
+          </div>
+        </div>
+
+        <div className="sm:hidden space-y-4">
+          {currentOrders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+        </div>
+
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="min-w-full bg-white rounded-lg shadow">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crop Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Area</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {currentOrders.map((order) => (
+                <motion.tr
+                  key={order.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.dateTime).toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.farmer}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.cropType}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.area} m²</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.cost.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <StatusBadge status={order.status} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button className="text-blue-600 hover:text-blue-800">
+                        <Edit size={16} />
+                      </button>
+                      <button className="text-gray-600 hover:text-gray-800">
+                        <Download size={16} />
+                      </button>
+                      <button className="text-green-600 hover:text-green-800">
+                        <MessageCircle size={16} />
+                      </button>
+                      <button 
+                        className="text-purple-600 hover:text-purple-800"
+                        onClick={() => handleViewDetails(order.id)}
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between">
+          <div className="text-sm text-gray-700 mb-4 sm:mb-0">
+            Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} entries
+          </div>
+          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            {[...Array(Math.ceil(filteredOrders.length / ordersPerPage)).keys()].map((number) => (
+              <button
+                key={number + 1}
+                onClick={() => paginate(number + 1)}
+                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                  currentPage === number + 1 ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {number + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === Math.ceil(filteredOrders.length / ordersPerPage)}
+              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const styles = {
-    container: {
-        margin: '0',
-        padding: '20px',
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Arial, sans-serif',
-        backgroundColor: '#f9f9f9',
-    },
-    toolsContainer: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        width: '80%',
-        marginBottom: '20px',
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: '10px',
-        padding: '20px',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        width: '100%',
-        marginBottom: '20px',
-    },
-    cardHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    cropIcon: {
-        fontSize: '24px',
-    },
-    cropType: {
-        fontSize: '14px',
-        fontWeight: 'bold',
-        padding: '5px 10px',
-        borderRadius: '5px',
-        color: '#333',
-    },
-    title: {
-        fontSize: '18px',
-        margin: '10px 0',
-    },
-    details: {
-        fontSize: '14px',
-        color: '#555',
-    },
-    pagination: {
-        display: 'flex',
-        justifyContent: 'center',
-        margin: '20px 0',
-    },
-    pageButton: {
-        margin: '0 5px',
-        padding: '8px 16px',
-        border: 'none',
-        backgroundColor: 'white',
-        color: '#007BFF',
-        borderRadius: '4px',
-        cursor: 'pointer',
-    },
-};
-export default OrderListComponent;
+export default OrderListManagement;

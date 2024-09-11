@@ -54,3 +54,28 @@ export const fetchQRCode = async (userId, orderId, content) => {
         throw error; // Optionally throw the error to be handled by the caller
     }
 };
+
+export const sendUpdatedOrderToAPI = async (updatedOrder) => {
+    try {
+      const response = await api.put(`http://localhost:8080/api/user/1/receptionist/orders/${updatedOrder.id}`, updatedOrder);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating order:', error);
+    }
+  };
+
+export const getListOfOrders = async () => {
+    try {
+        return await api.get('http://localhost:8080/api/user/1/farmer/orders');
+    } catch (error) {
+        console.error('Error updating order:', error);
+    }
+};
+
+export const getOrderDetails = async(orderId) => {
+    try {
+        return await api.get(`http://localhost:8080/api/user/1/farmer/orders/${orderId}`);
+    } catch (error) {
+        console.error('Error get detail order:', error);
+      }
+}
