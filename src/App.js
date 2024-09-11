@@ -4,6 +4,9 @@ import HomePage from './perspective/HomePage';
 import ScanPage from './perspective/ScanPage';
 import QRCodePage from './perspective/QRCodePage';
 import OrderManagementPage from './perspective/OrderManagementPage';
+import Dashboard from './component/ordermanagement/Code1';
+import OrderDetailComponent from './component/ordermanagement/OrdeDetailComponent';
+import ShopZenApp from './component/ordermanagement/Code4';
 
 function App() {
   return (
@@ -13,6 +16,9 @@ function App() {
         <Route path="/scan" element={<ScanPage />} />
         <Route path="/qr" element={<QRCodePage />} />
         <Route path="/order-manage" element={<OrderManagementPage />} />
+        <Route path="/code1" element={<Dashboard />} />
+        <Route path="/order-detail" element={<OrderDetailComponent />} />
+        <Route path="/code4" element={<ShopZenApp />} />
       </Routes>
     </div>
   );
