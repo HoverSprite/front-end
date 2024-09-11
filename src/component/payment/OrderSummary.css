@@ -1,0 +1,54 @@
+.order-summary h2 {
+  margin-top: 0;
+}
+
+.order-details p {
+  margin: 5px 0;
+}
+
+.order-summary {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.order-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.crop-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.crop-type {
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  padding: 5px 10px;
+  border-radius: 15px;
+}
+
+.order-summary h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.order-details p {
+  margin: 5px 0;
+}
+
+.order-cost {
+  margin-top: 20px;
+}
+
+.total-cost {
+  font-size: 24px;
+  font-weight: bold;
+  color: #4caf50;
+}

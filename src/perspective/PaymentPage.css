@@ -1,0 +1,40 @@
+.payment-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.payment-container {
+  display: flex;
+  gap: 20px;
+}
+
+.payment-options,
+.order-summary {
+  flex: 1;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.payment-methods {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.payment-methods button {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+}
+
+.payment-methods button.active {
+  background-color: #e0e0e0;
+}
+
+.payment-options h2 {
+  margin-top: 0;
+}
