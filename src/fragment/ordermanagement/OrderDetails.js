@@ -20,6 +20,11 @@ const OrderDetails = ({ orderData, onUpdate }) => {
   const [activeTab, setActiveTab] = useState('assigned');
   const [removedSprayers, setRemovedSprayers] = useState([]);
 
+  useEffect(() => {
+    setOrder(orderData);
+    setOriginalOrder(orderData);
+  }, [orderData]);
+
   const SprayerCard = ({ sprayer, count, onAdd, onRemove, isPrimary, onSetPrimary, isAssigned }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -134,13 +139,19 @@ const OrderDetails = ({ orderData, onUpdate }) => {
     await sendUpdatedOrderToAPI(updatedOrder);
     // setOrder(updatedOrder);
     setIsEditing(false);
-    setOriginalOrder(updatedOrder); // Update the original order state
     onUpdate(updatedOrder);
     setRemovedSprayers([]);
   };
 
   const handleChange = (field, value) => {
     setEditedFields({ ...editedFields, [field]: value });
+  };
+
+  const handleAutoAssignChange = (checked) => {
+    setOrder((prevOrder) => ({
+      ...prevOrder,
+      autoAssign: checked // Update state with new toggle value
+    }));
   };
 
   const handleAddSprayer = (sprayer) => {
@@ -404,7 +415,13 @@ const OrderDetails = ({ orderData, onUpdate }) => {
 
       {order.status != 'PENDING' && (
         <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-4">Sprayer Management</h3>
+          <div className="flex items-center justify-between wrap">
+            <h3 className="text-lg font-semibold">Sprayer Management</h3>
+            <label className="inline-flex items-center cursor-pointer">
+              <input type="checkbox" checked={order.autoAssign} className="sr-only peer" disabled={!isEditing} onChange={(e) => handleAutoAssignChange(e.target.checked)} />
+              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
           <div className="flex mb-4 border-b">
             <button
               className={`pb-2 px-4 text-sm font-medium ${activeTab === 'assigned' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}

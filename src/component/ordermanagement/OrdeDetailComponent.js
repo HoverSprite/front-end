@@ -13,6 +13,7 @@ const OrderDetailComponent = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -41,12 +42,17 @@ const OrderDetailComponent = () => {
   const handleUpdateOrder = async (updatedData) => {
     try {
       const response = await getOrderDetails(updatedData.id);
-      setOrderData(response.data);
-      console.log('Order updated:', updatedData);
+      setOrderData({ ...response.data });
+      setForceUpdate((prev) => prev + 1); // Trigger a re-render
     } catch (error) {
       console.error('Error updating order:', error);
     }
   };
+
+  useEffect(() => {
+    console.log("here")
+  }, [forceUpdate]);
+
 
   if (!orderData) {
     return <div>Loading...</div>;
