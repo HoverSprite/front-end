@@ -1,0 +1,57 @@
+.cash-payment {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.cash-payment h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.payment-details {
+  margin-bottom: 20px;
+}
+
+.input-group {
+  margin-bottom: 10px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.confirmation-checkboxes {
+  margin-bottom: 20px;
+}
+
+.confirmation-checkboxes label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.confirm-payment-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.confirm-payment-button:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+}
