@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation  } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Bell, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -40,9 +40,8 @@ const OrderDetailComponent = () => {
 
   const handleUpdateOrder = async (updatedData) => {
     try {
-      // In a real application, you would send this update to your backend
-      // await axios.put(`http://localhost:8080/api/user/1/farmer/orders/${updatedData.id}`, updatedData);
-      setOrderData(updatedData);
+      const response = await getOrderDetails(updatedData.id);
+      setOrderData(response.data);
       console.log('Order updated:', updatedData);
     } catch (error) {
       console.error('Error updating order:', error);
@@ -54,7 +53,7 @@ const OrderDetailComponent = () => {
   }
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate('/order-manage');
   };
 
   if (loading) {
@@ -70,6 +69,12 @@ const OrderDetailComponent = () => {
       <div className="bg-white shadow">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex justify-between items-center py-6">
+            <button
+              onClick={handleGoBack}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              Go Back
+            </button>
             <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
             <div className="flex items-center space-x-4">
               <Search className="text-gray-500" />

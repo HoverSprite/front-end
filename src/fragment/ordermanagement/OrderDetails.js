@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X } from 'lucide-react';
+import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X, ChevronRight, Activity } from 'lucide-react';
 import { format, parse, setHours, setMinutes, addHours } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -9,60 +9,199 @@ import moment from 'moment';
 import 'leaflet/dist/leaflet.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { sendUpdatedOrderToAPI } from '../../service/DataService';
+import { sendUpdatedOrderToAPI, fetchAvailableSprayersAPI } from '../../service/DataService';
 
 const OrderDetails = ({ orderData, onUpdate }) => {
   const [order, setOrder] = useState(orderData);
+  const [originalOrder, setOriginalOrder] = useState(orderData);
   const [isEditing, setIsEditing] = useState(false);
   const [editedFields, setEditedFields] = useState({});
-  const [newSprayer, setNewSprayer] = useState({ firstName: '', lastName: '', expertise: 'NOVICE' });
+  const [availableSprayers, setAvailableSprayers] = useState({});
+  const [activeTab, setActiveTab] = useState('assigned');
+  const [removedSprayers, setRemovedSprayers] = useState([]);
 
+  const SprayerCard = ({ sprayer, count, onAdd, onRemove, isPrimary, onSetPrimary, isAssigned }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white rounded-lg shadow-sm p-4 mb-3"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            {sprayer.profilePictureUrl ? (
+              <img src={sprayer.profilePictureUrl} alt={`${sprayer.firstName} ${sprayer.lastName}`} className="w-full h-full object-cover" />
+            ) : (
+              <Users size={24} className="text-gray-500" />
+            )}
+          </div>
+          <div>
+            <p className="font-medium text-sm">{sprayer.firstName} {sprayer.lastName}</p>
+            <p className="text-xs text-gray-500">{sprayer.expertise}</p>
+            {count !== undefined && (
+              <div className="flex items-center mt-1">
+                <Activity size={12} className="text-blue-500 mr-1" />
+                <span className="text-xs text-blue-500">{count} orders this week</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col items-end space-y-2">
+          {isAssigned ? (
+            <>
+              {isPrimary ? (
+                <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                  Primary
+                </span>
+              ) : (
+                <button
+                  onClick={onSetPrimary}
+                  className="text-blue-600 hover:text-blue-800 text-xs"
+                >
+                  Set as Primary
+                </button>
+              )}
+              {isEditing && (
+                <button
+                  onClick={onRemove}
+                  className="flex items-center justify-center w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={onAdd}
+              className="flex items-center justify-center w-6 h-6 bg-green-500 text-white rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+            >
+              <Plus size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  useEffect(() => {
+    if (isEditing) {
+      fetchAvailableSprayers();
+    }
+  }, [isEditing]);
+
+  const fetchAvailableSprayers = async () => {
+    try {
+      const response = await fetchAvailableSprayersAPI(1, order.id);
+      setAvailableSprayers(response.data);
+    } catch (error) {
+      console.error('Error fetching available sprayers:', error);
+    }
+  };
 
   const handleEdit = () => {
     setIsEditing(true);
     setEditedFields({});
+    setOriginalOrder({ ...order }); // Store the original order state
+    setRemovedSprayers([]);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
     setEditedFields({});
+    setOrder({ ...originalOrder }); // Restore the original order state
+    setRemovedSprayers([]);
+
+    // Restore the original sprayer assignments
+    setAvailableSprayers(prevAvailable => {
+      const updatedAvailableSprayers = { ...prevAvailable };
+      removedSprayers.forEach(sprayer => {
+        const expertise = sprayer.expertise;
+        if (!updatedAvailableSprayers[expertise]) {
+          updatedAvailableSprayers[expertise] = [];
+        }
+        updatedAvailableSprayers[expertise] = updatedAvailableSprayers[expertise].filter(
+          ({ first }) => first.id !== sprayer.id
+        );
+      });
+      return updatedAvailableSprayers;
+    });
   };
 
   const handleSave = async () => {
     const updatedOrder = { ...order, ...editedFields };
-    setOrder(updatedOrder);
-    setIsEditing(false);
     await sendUpdatedOrderToAPI(updatedOrder);
+    // setOrder(updatedOrder);
+    setIsEditing(false);
+    setOriginalOrder(updatedOrder); // Update the original order state
     onUpdate(updatedOrder);
+    setRemovedSprayers([]);
   };
 
   const handleChange = (field, value) => {
     setEditedFields({ ...editedFields, [field]: value });
   };
 
-  const handleAddSprayer = () => {
-    if (newSprayer.firstName && newSprayer.lastName) {
-      const updatedSprayerAssignments = [
-        ...order.sprayerAssignments,
-        {
-          id: Date.now(), // Use a timestamp as a temporary ID
-          sprayer: {
-            ...newSprayer,
-            id: Date.now(), // Use a timestamp as a temporary ID
-          },
-          isPrimary: order.sprayerAssignments.length === 0, // Set as primary if it's the first sprayer
+  const handleAddSprayer = (sprayer) => {
+    const updatedSprayerAssignments = [
+      ...order.sprayerAssignments,
+      {
+        sprayer: {
+          ...sprayer,
+          id: sprayer.id,
         },
-      ];
-      setOrder({ ...order, sprayerAssignments: updatedSprayerAssignments });
-      setNewSprayer({ firstName: '', lastName: '', expertise: 'NOVICE' });
-    }
+        isPrimary: order.sprayerAssignments.length === 0,
+      },
+    ];
+    setOrder({ ...order, sprayerAssignments: updatedSprayerAssignments });
+
+    // Remove the added sprayer from the available sprayers list
+    const updatedAvailableSprayers = { ...availableSprayers };
+    Object.keys(updatedAvailableSprayers).forEach(expertise => {
+      updatedAvailableSprayers[expertise] = updatedAvailableSprayers[expertise].filter(
+        ({ first }) => first.id !== sprayer.id
+      );
+    });
+    setAvailableSprayers(updatedAvailableSprayers);
   };
 
-  const handleRemoveSprayer = (id) => {
+  const handleRemoveSprayer = (sprayerId) => {
+    const removedAssignment = order.sprayerAssignments.find(assignment => assignment.sprayer.id === sprayerId);
+
+    if (!removedAssignment) {
+      console.error(`Sprayer with id ${sprayerId} not found in assignments`);
+      return;
+    }
+
     const updatedSprayerAssignments = order.sprayerAssignments.filter(
-      (assignment) => assignment.id !== id
+      (assignment) => assignment.sprayer.id !== sprayerId
     );
-    setOrder({ ...order, sprayerAssignments: updatedSprayerAssignments });
+
+    // Update primary sprayer if necessary
+    if (removedAssignment.isPrimary && updatedSprayerAssignments.length > 0) {
+      updatedSprayerAssignments[0].isPrimary = true;
+    }
+
+    setOrder(prevOrder => ({
+      ...prevOrder,
+      sprayerAssignments: updatedSprayerAssignments
+    }));
+
+    // Add the removed sprayer to the removedSprayers list
+    setRemovedSprayers(prevRemoved => [...prevRemoved, removedAssignment.sprayer]);
+
+    // Add the removed sprayer back to the available sprayers list
+    const removedSprayer = removedAssignment.sprayer;
+    setAvailableSprayers(prevAvailable => {
+      const updatedAvailableSprayers = { ...prevAvailable };
+      const expertise = removedSprayer.expertise;
+      if (!updatedAvailableSprayers[expertise]) {
+        updatedAvailableSprayers[expertise] = [];
+      }
+      updatedAvailableSprayers[expertise].push({ first: removedSprayer, second: 0 });
+      return updatedAvailableSprayers;
+    });
   };
 
   const handleSetPrimarySprayer = (id) => {
@@ -263,101 +402,94 @@ const OrderDetails = ({ orderData, onUpdate }) => {
         </p>
       </div>
 
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-4">Assigned Sprayers</h3>
-        {order.sprayerAssignments.map((assignment) => (
-          <div key={assignment.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-md mb-2">
-            <div>
-              <p className="font-medium">{assignment.sprayer.firstName} {assignment.sprayer.lastName}</p>
-              <p className="text-sm text-gray-500">Expertise: {assignment.sprayer.expertise}</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              {assignment.isPrimary ? (
-                <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
-                  Primary
-                </span>
-              ) : (
-                <button
-                  onClick={() => handleSetPrimarySprayer(assignment.id)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  Set as Primary
-                </button>
-              )}
-              {isEditing && (
-                              <button
-                              onClick={() => handleRemoveSprayer(assignment.id)}
-                              className="flex items-center justify-center w-7 h-7 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
-                            >
-                              <X size={24} />
-                            </button>
-              )}
-            </div>
-          </div>
-        ))}
-        {isEditing && (
-          <div className="mt-4">
-            <h4 className="text-md font-semibold mb-2">Add New Sprayer</h4>
-            <div className="flex flex-wrap items-center space-x-2 space-y-2">
-              <input
-                type="text"
-                placeholder="First Name"
-                value={newSprayer.firstName}
-                onChange={(e) => setNewSprayer({ ...newSprayer, firstName: e.target.value })}
-                className="flex-grow min-w-[200px] px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 ml-2"
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={newSprayer.lastName}
-                onChange={(e) => setNewSprayer({ ...newSprayer, lastName: e.target.value })}
-                className="flex-grow min-w-[200px] px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 ml-2"
-              />
-              <select
-                value={newSprayer.expertise}
-                onChange={(e) => setNewSprayer({ ...newSprayer, expertise: e.target.value })}
-                className="flex-grow min-w-[150px] px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 ml-2"
-              >
-                <option value="NOVICE">Novice</option>
-                <option value="INTERMEDIATE">Intermediate</option>
-                <option value="EXPERT">Expert</option>
-              </select>
+      {order.status != 'PENDING' && (
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-4">Sprayer Management</h3>
+          <div className="flex mb-4 border-b">
+            <button
+              className={`pb-2 px-4 text-sm font-medium ${activeTab === 'assigned' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('assigned')}
+            >
+              Assigned Sprayers
+            </button>
+            {isEditing && (
               <button
-                onClick={handleAddSprayer}
-                className="flex items-center justify-center w-9 h-9 bg-green-500 text-white rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
+                className={`pb-2 px-4 text-sm font-medium ${activeTab === 'available' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('available')}
               >
-                <Plus size={24} />
+                Available Sprayers
               </button>
-            </div>
+            )}
           </div>
-        )}
-      </div>
+
+          {activeTab === 'assigned' && (
+            <div>
+              {order.sprayerAssignments.map((assignment) => (
+                <SprayerCard
+                  key={assignment.sprayer.id}
+                  sprayer={assignment.sprayer}
+                  isPrimary={assignment.isPrimary}
+                  onSetPrimary={() => handleSetPrimarySprayer(assignment.sprayer.id)}
+                  onRemove={() => handleRemoveSprayer(assignment.sprayer.id)}
+                  isAssigned={true}
+                />
+              ))}
+              {order.sprayerAssignments.length === 0 && (
+                <p className="text-gray-500 text-sm">No sprayers assigned yet.</p>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'available' && isEditing && (
+            <div>
+              {Object.entries(availableSprayers).map(([expertise, sprayers]) => (
+                <div key={expertise} className="mb-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">{expertise}</h4>
+                  {sprayers
+                    .filter(({ first: sprayer }) =>
+                      !order.sprayerAssignments.some(a => a.sprayer.id === sprayer.id)
+                    )
+                    .map(({ first: sprayer, second: count }) => (
+                      <SprayerCard
+                        key={sprayer.id}
+                        sprayer={sprayer}
+                        count={count}
+                        onAdd={() => handleAddSprayer(sprayer)}
+                        isAssigned={false} // Already filtered out, so this will always be false
+                      />
+                    ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mt-8 flex flex-wrap justify-between items-center">
         <div className="flex space-x-4">
-          {order.status !== 'CONFIRMED' && (
+          {order.status === 'PENDING' && (
             <button
-            onClick={() => handleStatusChange('CONFIRMED')}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Confirm
-          </button>
+              onClick={() => handleStatusChange('CONFIRMED')}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Confirm
+            </button>
           )}
-          {order.status !== 'IN_PROGRESS' && (
+          {order.status === 'ASSIGNED' && (
             <button
-            onClick={() => handleStatusChange('IN_PROGRESS')}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            In Spray Progress
-          </button>
+              onClick={() => handleStatusChange('IN_PROGRESS')}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              In Spray Progress
+            </button>
           )}
-          {order.status !== 'COMPLETED' && (
+          {order.status === 'IN_PROGRESS' && (
             <button
-            onClick={() => handleStatusChange('SPRAY_COMPLETED')}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Spray Complete
-          </button>
+              onClick={() => handleStatusChange('SPRAY_COMPLETED')}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Spray Complete
+            </button>
           )}
         </div>
         <div className="flex space-x-4">
