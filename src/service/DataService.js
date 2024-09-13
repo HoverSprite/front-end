@@ -57,7 +57,8 @@ export const fetchQRCode = async (userId, orderId, content) => {
 
 export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     try {
-        const response = await api.put(`http://localhost:8080/api/user/1/receptionist/orders/${updatedOrder.id}`, updatedOrder);
+        console.log(updatedOrder)
+        const response = await api.put(`http://localhost:8080/api/user/2/receptionist/orders/${updatedOrder.id}`, updatedOrder);
         return response.data;
     } catch (error) {
         console.error('Error updating order:', error);

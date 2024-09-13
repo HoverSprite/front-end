@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X, ChevronRight, Activity } from 'lucide-react';
+import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X, ChevronRight, Activity, CreditCard  } from 'lucide-react';
 import { format, parse, setHours, setMinutes, addHours } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -10,6 +10,7 @@ import 'leaflet/dist/leaflet.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { sendUpdatedOrderToAPI, fetchAvailableSprayersAPI } from '../../service/DataService';
+import { useNavigate } from 'react-router-dom';
 
 const OrderDetails = ({ orderData, onUpdate }) => {
   const [order, setOrder] = useState(orderData);
@@ -19,6 +20,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
   const [availableSprayers, setAvailableSprayers] = useState({});
   const [activeTab, setActiveTab] = useState('assigned');
   const [removedSprayers, setRemovedSprayers] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setOrder(orderData);
@@ -103,6 +105,10 @@ const OrderDetails = ({ orderData, onUpdate }) => {
     } catch (error) {
       console.error('Error fetching available sprayers:', error);
     }
+  };
+
+  const handlePayment = () => {
+    navigate(`/payment?orderId=${order.id}`);
   };
 
   const handleEdit = () => {
@@ -364,7 +370,23 @@ const OrderDetails = ({ orderData, onUpdate }) => {
           <h2 className="text-2xl font-bold text-gray-900">Order #{order.id}</h2>
           <p className="text-sm text-gray-500">{formatDateTime(order.dateTime)}</p>
         </div>
-        <StatusBadge status={order.status} />
+        <div className="flex flex-col items-end space-y-2">
+          <StatusBadge status={order.status} />
+          {order.status === 'SPRAY_COMPLETED' && (
+            <motion.button
+              onClick={handlePayment}
+              className="group relative px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 ease-in-out"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="flex items-center">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Pay Now
+              </span>
+              <span className="absolute left-0 top-0 h-full w-0 bg-white opacity-20 transition-all duration-300 ease-out group-hover:w-full"></span>
+            </motion.button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -528,13 +550,15 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               </button>
             </>
           ) : (
-            <button
+            (order.status !== 'IN_PROGRESS' && order.status !== 'SPRAY_COMPLETED' && order.status != 'COMPLETED') && (
+              <button
               onClick={handleEdit}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <Edit className="inline-block mr-2" size={16} />
               Edit Order
             </button>
+            )
           )}
         </div>
       </div>
