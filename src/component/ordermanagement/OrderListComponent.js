@@ -122,7 +122,7 @@ const OrderListManagement = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <div className="bg-white shadow">
+      <div className="bg-white shadow fixed top-0 left-0 w-full z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4 sm:py-6">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Order Management</h1>
@@ -143,7 +143,7 @@ const OrderListManagement = () => {
         </div>
       </div>
 
-      <div className="flex-grow max-w-7xl sm:mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="flex-grow max-w-7xl sm:mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-20">
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
           <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
