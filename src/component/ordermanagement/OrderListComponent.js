@@ -26,7 +26,7 @@ const OrderListManagement = () => {
         console.error('Error fetching orders:', error);
       }
     };
-  
+
     fetchOrders();
   }, []);
 
@@ -98,7 +98,7 @@ const OrderListManagement = () => {
         <span className="text-sm">Farmer #{order.farmer}</span>
       </div>
       <div className="flex justify-between items-center">
-        <button 
+        <button
           className="text-blue-600 hover:text-blue-800 flex items-center"
           onClick={() => handleViewDetails(order.id)}
         >
@@ -143,7 +143,7 @@ const OrderListManagement = () => {
         </div>
       </div>
 
-      <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="flex-grow max-w-7xl sm:mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
           <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -213,7 +213,7 @@ const OrderListManagement = () => {
                       <button className="text-green-600 hover:text-green-800">
                         <MessageCircle size={16} />
                       </button>
-                      <button 
+                      <button
                         className="text-purple-600 hover:text-purple-800"
                         onClick={() => handleViewDetails(order.id)}
                       >
@@ -243,9 +243,8 @@ const OrderListManagement = () => {
               <button
                 key={number + 1}
                 onClick={() => paginate(number + 1)}
-                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                  currentPage === number + 1 ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === number + 1 ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                  }`}
               >
                 {number + 1}
               </button>
