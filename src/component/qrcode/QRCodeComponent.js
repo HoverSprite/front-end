@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API_URL, fetchQRCode } from '../../service/DataService';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Oval } from 'react-loader-spinner'; // Ensure you have this package installed
 
 
@@ -7,6 +8,8 @@ const QRCodeComponent = ({ orderId, content }) => {
     const [qrCodeUrl, setQrCodeUrl] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchParams] = useSearchParams();
+    const order_id = searchParams.get('orderId');
 
     useEffect(() => {
         const fetchQR = async (userId, orderId) => {
@@ -21,7 +24,7 @@ const QRCodeComponent = ({ orderId, content }) => {
             }
         };
 
-        fetchQR(1, 1);
+        fetchQR(1, order_id);
     }, [orderId, content]);
 
     return (

@@ -3,7 +3,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, DollarSign, Crop, CreditCard, ArrowLeft, User } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams  } from 'react-router-dom';
 import CashPayment from "../component/payment/CashPayment";
 import CardPayment from "../component/payment/CardPayment";
 import { getOrderDetails, sendUpdatedOrderToAPI } from "../service/DataService";
@@ -18,8 +18,21 @@ const PaymentPage = () => {
   const [order, setOrder] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [qrScanned, setQrScanned] = useState(false);
+  const [searchParams] = useSearchParams();
 
-  const orderId = new URLSearchParams(location.search).get('orderId');
+  const orderId = searchParams.get('orderId');
+  const completingPayment = searchParams.get('completingPayment') === 'true';
+  const scannedMethod = searchParams.get('method');
+  const scannedAmount = searchParams.get('amount');
+
+  useEffect(() => {
+    // Check if returning from QR code scan
+    if (location.state && location.state.completingPayment && !qrScanned) {
+      setQrScanned(true);
+      completePaymentAfterScan(location.state.method, location.state.amount);
+    }
+  }, [location.state, qrScanned]);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -39,18 +52,35 @@ const PaymentPage = () => {
     fetchOrderDetails();
   }, [orderId]);
 
+  useEffect(() => {
+    if (completingPayment && scannedMethod && scannedAmount && order) {
+      completePaymentAfterScan(scannedMethod, parseFloat(scannedAmount));
+    }
+  }, [completingPayment, scannedMethod, scannedAmount, order]);
+
   const handlePaymentComplete = async (method, paidAmount) => {
     setIsProcessing(true);
+
+    try {
+      // Navigate to QR code scanning page
+      navigate(`/scan?orderId=${orderId}&method=${method}&amount=${paidAmount}`);
+    } catch (error) {
+      console.error("Error initiating QR code scan:", error);
+      setIsProcessing(false);
+      // Handle error (e.g., show error message to user)
+    }
+  };
+
+  const completePaymentAfterScan = async (method, paidAmount) => {
     let updatedOrder;
     let paymentData;
-    console.log(method)
-    console.log(paidAmount)
+
     try {
       paymentData = {
         sprayOrder: order.id,
         farmer: order.farmer.id,
         amount: paidAmount,
-        paymentMethod: method === 'cash' ? 'CASH' : (method === 'visa' ? 'VISA' : 'MASTERCARD'),
+        paymentMethod: method === 'cash' ? 'CASH' : 'CARD',
         transaction: `TRX-${Date.now()}`, // Generate a unique transaction ID
         paymentDate: new Date().toISOString(),
         status: 'SUCCESS' // Assuming payment is successful at this point
@@ -197,7 +227,7 @@ const PaymentPage = () => {
               <Elements stripe={stripePromise}>
                 <CardPayment
                   amount={order.cost}
-                  onPaymentComplete={(amount, cardType) => handlePaymentComplete(amount)}
+                  onPaymentComplete={(method, amount) => handlePaymentComplete(method, amount)}
                 />
               </Elements>
             )}

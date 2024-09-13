@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import QrScanner from 'react-qr-scanner';
 import { verify } from '../../service/DataService';
-import './ScanComponent.css'; // Ensure this includes spinner styles
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import './ScanComponent.css';
 
 function ScanComponent() {
     const [scanResult, setScanResult] = useState(null);
     const [scanned, setScanned] = useState(false);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [searchParams] = useSearchParams();
+
+    const orderId = searchParams.get('orderId');
+    const method = searchParams.get('method');
+    const amount = searchParams.get('amount');
 
     const handleScan = (data) => {
         if (data && data.text && !scanned) {
@@ -27,11 +35,13 @@ function ScanComponent() {
                 try {
                     const result = await verify(scanResult);
                     if (result.status === 200) {
-                        // TODO: Handle successful verification
                         console.log("Verification successful");
+                        // Navigate back to PaymentPage with URL parameters
+                        navigate(`/payment?orderId=${orderId}&completingPayment=true&method=${method}&amount=${amount}`);
                     }
                 } catch (error) {
                     console.error('Verification failed:', error);
+                    // Handle verification failure (e.g., show error message)
                 } finally {
                     setLoading(false); // Stop loading spinner
                 }
@@ -39,7 +49,7 @@ function ScanComponent() {
         };
 
         handleVerification();
-    }, [scanned, scanResult]);
+    }, [scanned, scanResult, orderId, method, amount, navigate]);
 
     return (
         <div className="scan-container">

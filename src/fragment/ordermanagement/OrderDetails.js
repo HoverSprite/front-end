@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X, ChevronRight, Activity, CreditCard  } from 'lucide-react';
+import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X, ChevronRight, Activity, CreditCard, QrCode   } from 'lucide-react';
 import { format, parse, setHours, setMinutes, addHours } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -107,8 +107,14 @@ const OrderDetails = ({ orderData, onUpdate }) => {
     }
   };
 
+  
+
   const handlePayment = () => {
     navigate(`/payment?orderId=${order.id}`);
+  };
+
+  const handleQrCodeNavigation = () => {
+    navigate(`/qr?orderId=${order.id}`);
   };
 
   const handleEdit = () => {
@@ -386,6 +392,18 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               <span className="absolute left-0 top-0 h-full w-0 bg-white opacity-20 transition-all duration-300 ease-out group-hover:w-full"></span>
             </motion.button>
           )}
+          <motion.button
+            onClick={handleQrCodeNavigation}
+            className="group relative px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="flex items-center">
+              <QrCode className="mr-2 h-4 w-4" />
+              View QR Code
+            </span>
+            <span className="absolute left-0 top-0 h-full w-0 bg-white opacity-20 transition-all duration-300 ease-out group-hover:w-full"></span>
+          </motion.button>
         </div>
       </div>
 
