@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X, ChevronRight, Activity, CreditCard, QrCode   } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion,AnimatePresence  } from 'framer-motion';
+import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Save, X, ChevronRight, Activity, CreditCard, QrCode, Star, ArrowLeft, ExternalLink  } from 'lucide-react';
 import { format, parse, setHours, setMinutes, addHours } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -9,8 +9,46 @@ import moment from 'moment';
 import 'leaflet/dist/leaflet.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { sendUpdatedOrderToAPI, fetchAvailableSprayersAPI } from '../../service/DataService';
+import { sendUpdatedOrderToAPI, fetchAvailableSprayersAPI, sendFeedbackToAPI } from '../../service/DataService';
 import { useNavigate } from 'react-router-dom';
+
+const LazyImage = ({ imageData, alt, onImageClick }) => {
+  const [imageUrl, setImageUrl] = useState(null);
+
+  const decompressImage = useCallback(() => {
+    if (!imageUrl) {
+      const url = `data:image/jpeg;base64,${imageData.imageStr}`;
+      setImageUrl(url);
+    }
+    onImageClick(`data:image/jpeg;base64,${imageData.imageStr}`);
+  }, [imageData, imageUrl, onImageClick]);
+
+  return (
+    <div 
+      className="w-20 h-20 bg-gray-200 rounded-md cursor-pointer flex items-center justify-center relative"
+      onClick={decompressImage}
+    >
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={alt}
+          className="w-full h-full object-cover rounded-md"
+        />
+      ) : (
+        <ExternalLink size={24} className="text-gray-400" />
+      )}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          decompressImage();
+        }}
+        className="absolute bottom-1 right-1 bg-blue-500 text-white rounded-full p-1 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        <ExternalLink size={12} />
+      </button>
+    </div>
+  );
+};
 
 const OrderDetails = ({ orderData, onUpdate }) => {
   const [order, setOrder] = useState(orderData);
@@ -22,19 +60,120 @@ const OrderDetails = ({ orderData, onUpdate }) => {
   const [removedSprayers, setRemovedSprayers] = useState([]);
   const navigate = useNavigate();
 
+
+  const [comment, setComment] = useState('');
+  const [overallRating, setOverallRating] = useState(0);
+  const [attentiveRating, setAttentiveRating] = useState(0);
+  const [friendlyRating, setFriendlyRating] = useState(0);
+  const [professionalRating, setProfessionalRating] = useState(0);
+  const [images, setImages] = useState([]);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackError, setFeedbackError] = useState(null);
+
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const handleCommentChange = (e) => setComment(e.target.value);
+  const handleRatingChange = (setter) => (value) => setter(value);
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setImages([...images, ...files]);
+  };
+
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const convertToImageUrl = (imageData) => {
+    if (imageData && typeof imageData === 'object' && imageData.imageStr) {
+      return `data:image/jpeg;base64,${imageData.imageStr}`;
+    }
+    console.error('Unrecognized image format:', imageData);
+    return null;
+  };
+
+  const ImageModal = ({ isOpen, onClose, imageUrl }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-4 rounded-lg max-w-3xl max-h-3xl">
+          <img src={imageUrl} alt="Enlarged feedback" className="max-w-full max-h-[80vh] object-contain" />
+          <button
+            onClick={onClose}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const handleSubmitFeedback = async () => {
+    setIsSubmitting(true);
+    setFeedbackError(null);
+
+    try {
+      const base64Images = await Promise.all(images.map(convertToBase64));
+
+      const feedback = {
+        comment,
+        overallRating,
+        attentiveRating,
+        friendlyRating,
+        professionalRating,
+        images: base64Images.map(base64 => ({ imageStr: base64 }))
+      };
+
+      const response = await sendFeedbackToAPI(1, order.id, feedback);
+      if (response.status === 200 || response.status === 201) {
+        // Reset form after successful submission
+        setComment('');
+        setOverallRating(0);
+        setAttentiveRating(0);
+        setFriendlyRating(0);
+        setProfessionalRating(0);
+        setImages([]);
+        onUpdate(order);
+        // Optionally, you can update the order state or fetch updated order data here
+      } else {
+        throw new Error('Failed to submit feedback');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      setFeedbackError('Failed to submit feedback. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const RatingStars = ({ rating, onBlock = true }) => (
+    <div className="flex items-center">
+      {[1, 2, 3, 4, 5].map((value) => (
+        <Star
+          key={value}
+          size={20}
+          className={`${value <= rating ? 'text-yellow-400' : 'text-gray-300'} ${
+            onBlock ? '' : 'cursor-pointer hover:text-yellow-500'
+          }`}
+        />
+      ))}
+    </div>
+  );
+
   useEffect(() => {
     setOrder(orderData);
     setOriginalOrder(orderData);
   }, [orderData]);
 
   const SprayerCard = ({ sprayer, count, onAdd, onRemove, isPrimary, onSetPrimary, isAssigned }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white rounded-lg shadow-sm p-4 mb-3"
-    >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
@@ -89,7 +228,6 @@ const OrderDetails = ({ orderData, onUpdate }) => {
           )}
         </div>
       </div>
-    </motion.div>
   );
 
   useEffect(() => {
@@ -107,7 +245,53 @@ const OrderDetails = ({ orderData, onUpdate }) => {
     }
   };
 
+  const FeedbackDisplay = ({ feedback, setSelectedImage, setIsImageModalOpen }) => {
+    const handleImageClick = (imageUrl) => {
+      setSelectedImage(imageUrl);
+      setIsImageModalOpen(true);
+    };
   
+    return (
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
+        <p className="text-sm text-gray-700 mb-2">{feedback.comment}</p>
+        <div className="flex justify-between items-start">
+            <div className="flex items-center">
+              <p className="text-sm font-medium mr-2 mt-3">Overall Rating:</p>
+              <RatingStars rating={feedback.overallRating} onBlock={true} />
+            </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Attentiveness</p>
+            <RatingStars rating={feedback.attentiveRating} onBlock={true} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Friendliness</p>
+            <RatingStars rating={feedback.friendlyRating} onBlock={true} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Professionalism</p>
+            <RatingStars rating={feedback.professionalRating} onBlock={true} />
+          </div>
+        </div>
+        {feedback.images && feedback.images.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">Images</p>
+            <div className="flex flex-wrap gap-2">
+              {feedback.images.map((image, index) => (
+                <LazyImage
+                  key={index}
+                  imageData={image}
+                  alt={`Feedback image ${index + 1}`}
+                  onImageClick={handleImageClick}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const handlePayment = () => {
     navigate(`/payment?orderId=${order.id}`);
@@ -399,8 +583,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             whileTap={{ scale: 0.95 }}
           >
             <span className="flex items-center">
-              <QrCode className="mr-2 h-4 w-4" />
-              View QR Code
+              <QrCode className="h-4 w-4" />
             </span>
             <span className="absolute left-0 top-0 h-full w-0 bg-white opacity-20 transition-all duration-300 ease-out group-hover:w-full"></span>
           </motion.button>
@@ -580,6 +763,108 @@ const OrderDetails = ({ orderData, onUpdate }) => {
           )}
         </div>
       </div>
+
+      {order.feedBacks && order.feedBacks.length > 0 && (
+        <div className="mt-8 border-t pt-6">
+          <h3 className="text-lg font-semibold mb-4">Feedback</h3>
+          {order.feedBacks.map((feedback) => (
+            <FeedbackDisplay 
+              key={feedback.id} 
+              feedback={feedback}
+              setSelectedImage={setSelectedImage}
+              setIsImageModalOpen={setIsImageModalOpen}
+            />
+          ))}
+        </div>
+      )}
+
+      <AnimatePresence>
+      {order.status === 'COMPLETED' && (
+        <motion.div
+          key="feedback-form"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+          className="mt-8 border-t pt-6"
+        >
+          <h3 className="text-lg font-semibold mb-4">Leave a Comment</h3>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            rows="4"
+            placeholder="Share your experience..."
+            value={comment}
+            onChange={handleCommentChange}
+          ></textarea>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Overall Rating</p>
+              <RatingStars rating={overallRating} onRatingChange={handleRatingChange(setOverallRating)} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Attentiveness</p>
+              <RatingStars rating={attentiveRating} onRatingChange={handleRatingChange(setAttentiveRating)} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Friendliness</p>
+              <RatingStars rating={friendlyRating} onRatingChange={handleRatingChange(setFriendlyRating)} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Professionalism</p>
+              <RatingStars rating={professionalRating} onRatingChange={handleRatingChange(setProfessionalRating)} />
+            </div>
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Upload Images
+              <input
+                type="file"
+                multiple
+                onChange={handleImageUpload}
+                className="mt-1 block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-medium
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </label>
+            {images.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {images.map((file, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`Uploaded ${index + 1}`}
+                      className="h-20 w-20 object-cover rounded-md"
+                    />
+                    <button
+                      onClick={() => setImages(images.filter((_, i) => i !== index))}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleSubmitFeedback}
+            className="mt-6 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+          >
+            Submit Feedback
+          </button>
+        </motion.div>
+      )}
+      </AnimatePresence>
+
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        imageUrl={selectedImage}
+      />
     </motion.div>
   );
 };

@@ -28,7 +28,7 @@ export const verify = async (url) => {
     });
 
     // let otc = localStorage.getItem("otc");
-    let otc = "515316";
+    let otc = "524994";
     try {
         await delay(1000);
         const response = await custom_api.post(``, { otp: otc });
@@ -58,7 +58,7 @@ export const fetchQRCode = async (userId, orderId, content) => {
 export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     try {
         console.log(updatedOrder)
-        const response = await api.put(`http://localhost:8080/api/user/2/receptionist/orders/${updatedOrder.id}`, updatedOrder);
+        const response = await api.put(`/user/2/receptionist/orders/${updatedOrder.id}`, updatedOrder);
         return response.data;
     } catch (error) {
         console.error('Error updating order:', error);
@@ -67,7 +67,7 @@ export const sendUpdatedOrderToAPI = async (updatedOrder) => {
 
 export const getListOfOrders = async () => {
     try {
-        return await api.get('http://localhost:8080/api/user/1/farmer/orders');
+        return await api.get('/user/1/farmer/orders');
     } catch (error) {
         console.error('Error updating order:', error);
     }
@@ -75,12 +75,16 @@ export const getListOfOrders = async () => {
 
 export const getOrderDetails = async (orderId) => {
     try {
-        return await api.get(`http://localhost:8080/api/user/1/farmer/orders/${orderId}`);
+        return await api.get(`/user/1/farmer/orders/${orderId}`);
     } catch (error) {
         console.error('Error get detail order:', error);
     }
 }
 
 export const fetchAvailableSprayersAPI = async (user_id, order_id) => {
-    return await api.get(`http://localhost:8080/api/user/${user_id}/receptionist/orders/${order_id}/available-sprayers`);
+    return await api.get(`/user/${user_id}/receptionist/orders/${order_id}/available-sprayers`);
 };
+
+export const sendFeedbackToAPI = async (user_id, order_id, feedback) => {
+    return await api.post(`/user/${user_id}/orders/${order_id}/feedbacks/`,feedback);
+}
