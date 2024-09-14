@@ -1,8 +1,11 @@
+// src/component/ordermanagement/OrderListManagement.js
+
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, ChevronDown, Download, Edit, MessageCircle, MapPin, Calendar, Users, Crop, DollarSign, Eye, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getListOfOrders } from '../../service/DataService';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../contexts/UserContext'; // Import useUser
 
 const OrderListManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -10,11 +13,12 @@ const OrderListManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const ordersPerPage = 10;
   const navigate = useNavigate();
+  const { user } = useUser(); // Get user from context
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await getListOfOrders();
+        const response = await getListOfOrders(user);
         console.log(response);
         // The data is already parsed, so we don't need to call response.json()
         if (response.status === 200 && response.data) {
@@ -27,8 +31,10 @@ const OrderListManagement = () => {
       }
     };
 
-    fetchOrders();
-  }, []);
+    if (user && (user.role === 'FARMER' || user.role === 'RECEPTIONIST')) {
+      fetchOrders();
+    }
+  }, [user]);
 
   const filteredOrders = orders.filter(order =>
     Object.values(order).some(value =>
@@ -143,6 +149,7 @@ const OrderListManagement = () => {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="flex-grow max-w-7xl sm:mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-20">
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
           <div className="relative w-full sm:w-auto">
@@ -165,12 +172,14 @@ const OrderListManagement = () => {
           </div>
         </div>
 
+        {/* Mobile Order Cards */}
         <div className="sm:hidden space-y-4">
           {currentOrders.map((order) => (
             <OrderCard key={order.id} order={order} />
           ))}
         </div>
 
+        {/* Desktop Order Table */}
         <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full bg-white rounded-lg shadow">
             <thead className="bg-gray-50">
@@ -227,6 +236,7 @@ const OrderListManagement = () => {
           </table>
         </div>
 
+        {/* Pagination */}
         <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between">
           <div className="text-sm text-gray-700 mb-4 sm:mb-0">
             Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} entries

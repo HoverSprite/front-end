@@ -1,0 +1,25 @@
+// utils/dateUtils.js
+
+import { format, addDays, startOfWeek, getDay } from 'date-fns';
+
+// This is a placeholder function. You should replace it with an actual lunar calendar conversion library.
+export const convertToLunarDate = (date) => {
+  // Placeholder implementation
+  return format(date, 'dd/MM/yyyy') + ' (Lunar)';
+};
+
+export const getAvailableTimeSlots = (date) => {
+  const dayOfWeek = getDay(date);
+  const morningSlots = ['04:00', '05:00', '06:00', '07:00'];
+  const afternoonSlots = ['16:00', '17:00'];
+  
+  const allSlots = [...morningSlots, ...afternoonSlots];
+  
+  // This is a placeholder. In a real application, you would fetch the actual availability from your backend.
+  const getAvailability = () => Math.random() > 0.3;
+
+  return allSlots.flatMap(time => [
+    { time, isAvailable: getAvailability() },
+    { time: time.replace(':00', ':30'), isAvailable: getAvailability() }
+  ]);
+};

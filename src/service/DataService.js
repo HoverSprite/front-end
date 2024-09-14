@@ -47,6 +47,7 @@ export const fetchQRCode = async (userId, orderId, content) => {
     }
 };
 
+// Modified to accept user
 export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     try {
         const response = await api.put(`/user/2/receptionist/orders/${updatedOrder.id}`, updatedOrder);
@@ -57,18 +58,22 @@ export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     }
 };
 
-export const getListOfOrders = async () => {
+// Modified to accept user
+export const getListOfOrders = async (user) => {
     try {
         const response = await api.get('/user/1/farmer/orders');
         return response.data;
     } catch (error) {
-        console.error('Error fetching orders:', error);
-        throw error;
+        console.error('Error updating order:', error);
     }
 };
 
 export const getOrderDetails = async (orderId) => {
-    return await api.get(`/user/1/farmer/orders/${orderId}`);
+    try {
+        return await api.get(`/user/1/farmer/orders/${orderId}`);
+    } catch (error) {
+        console.error('Error get detail order:', error);
+    }
 }
 
 export const fetchAvailableSprayersAPI = async (user_id, order_id) => {

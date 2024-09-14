@@ -1,3 +1,5 @@
+// src/component/ordermanagement/OrderDetailComponent.js
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Bell, ChevronDown, ArrowLeft, Menu, X } from 'lucide-react';
@@ -7,46 +9,8 @@ import 'leaflet/dist/leaflet.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import OrderDetails from '../../fragment/ordermanagement/OrderDetails';
 import { getOrderDetails } from '../../service/DataService';
-
-const Sidebar = ({ isOpen, onClose }) => {
-  return (
-    <>
-      {/* Backdrop */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
-          onClick={onClose}
-        ></div>
-      )}
-      
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 right-0 w-64 max-w-[80%] bg-white shadow-lg z-[10000] transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="flex flex-col h-full">
-          <div className="p-4">
-            <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-              <X size={20} />
-            </button>
-            <div className="mt-8 space-y-4">
-              <div className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md">
-                <Search size={18} />
-                <span className="text-sm">Search</span>
-              </div>
-              <div className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md">
-                <Bell size={18} />
-                <span className="text-sm">Notifications</span>
-              </div>
-              <div className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md">
-                <img src="/api/placeholder/32/32" alt="User" className="w-5 h-5 rounded-full" />
-                <span className="text-sm">Profile</span>
-                <ChevronDown size={14} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
+import Sidebar from './SideBar'; // Ensure Sidebar is correctly imported
+import { useUser } from '../../contexts/UserContext'; // Import useUser
 
 const OrderDetailComponent = () => {
   const [orderData, setOrderData] = useState(null);
@@ -55,6 +19,7 @@ const OrderDetailComponent = () => {
   const location = useLocation();
   const [forceUpdate, setForceUpdate] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user } = useUser(); // Get user from context
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -68,21 +33,28 @@ const OrderDetailComponent = () => {
 
       try {
         setLoading(true);
-        const response = await getOrderDetails(orderId);
-        setOrderData(response.data);
+        const response = await getOrderDetails(user, orderId);
+        if (response && response.data) {
+          setOrderData(response.data);
+        } else {
+          setOrderData(null);
+        }
       } catch (err) {
         console.error('Error fetching order details:', err);
+        setOrderData(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrderDetails();
-  }, [location]);
+    if (user && (user.role === 'FARMER' || user.role === 'RECEPTIONIST')) {
+      fetchOrderDetails();
+    }
+  }, [location, user, forceUpdate]);
 
   const handleUpdateOrder = async (updatedData) => {
     try {
-      const response = await getOrderDetails(updatedData.id);
+      const response = await getOrderDetails(user, updatedData.id);
       setOrderData({ ...response.data });
       setForceUpdate((prev) => prev + 1); // Trigger a re-render
     } catch (error) {
@@ -113,9 +85,10 @@ const OrderDetailComponent = () => {
           <div className="flex justify-between items-center py-6">
             <button
               onClick={handleGoBack}
-              className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+              className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 flex items-center"
             >
-              <ArrowLeft />
+              <ArrowLeft className="mr-1" />
+              Back
             </button>
             <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
             <div className="hidden md:flex items-center space-x-4">
