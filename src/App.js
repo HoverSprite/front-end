@@ -1,4 +1,5 @@
 import './App.css';
+import './utils/axiosConfig';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import HomePage from './perspective/HomePage';
@@ -13,6 +14,7 @@ import SignUpPage from './perspective/SignUpPage';
 import SignInPage from './perspective/SignInPage';
 import RoleSelectionPage from './perspective/RoleSelectionPage';
 import UserDetailsSignUpPage from './perspective/UserDetailsPage';
+import { AuthProvider } from './context/AuthContext';
 
 const pageVariants = {
   initial: {
@@ -57,6 +59,7 @@ function App() {
 
   return (
     <div className="App">
+      <AuthProvider>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<AnimatedPage><HomePage /></AnimatedPage>} />
@@ -73,6 +76,7 @@ function App() {
           <Route path="/user-details" element={<UserDetailsSignUpPage />} />
         </Routes>
       </AnimatePresence>
+      </AuthProvider>
     </div>
   );
 }

@@ -1,84 +1,74 @@
-import axios from "axios";
-export const API_URL = "http://localhost:8080/api";
-
-const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+import axiosInstance, { noTokenApi } from './../utils/axiosConfig';
+// Use the configured axios instance
+const api = axiosInstance;
+const no_token_api_data = noTokenApi;
 
 
 export const getPersonList = async () => {
-    const response = await fetch('http://localhost:8080/persons');
-    const data = await response.json();
-    console.log(data);
-    return data;
+    try {
+        const response = await api.get('/persons');
+        console.log(response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching person list:', error);
+        throw error;
+    }
 }
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-
 export const verify = async (url) => {
-    const custom_api = axios.create({
+    const custom_api = axiosInstance.create({
         baseURL: url,
-        headers: {
-            "Content-Type": "application/json",
-        },
     });
 
-    // let otc = localStorage.getItem("otc");
     let otc = "658197";
     try {
         await delay(1000);
-        const response = await custom_api.post(``, { otp: otc });
+        const response = await custom_api.post('', { otp: otc });
         return response;
     } catch (error) {
         console.log("Error verifying: " + error);
+        throw error;
     }
 }
-
 
 export const fetchQRCode = async (userId, orderId, content) => {
     try {
         const response = await api.get(`/user/${userId}/otp/qr/${orderId}?content=${encodeURIComponent(content)}`, {
-            responseType: 'arraybuffer', // Important to handle binary data
+            responseType: 'arraybuffer',
         });
 
         const imageBlob = new Blob([response.data], { type: 'image/png' });
-        const imageObjectURL = URL.createObjectURL(imageBlob);
-
-        return imageObjectURL; // Return the image URL
+        return URL.createObjectURL(imageBlob);
     } catch (error) {
         console.error('Error fetching QR code: ', error);
-        throw error; // Optionally throw the error to be handled by the caller
+        throw error;
     }
 };
 
 export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     try {
-        console.log(updatedOrder)
         const response = await api.put(`/user/2/receptionist/orders/${updatedOrder.id}`, updatedOrder);
         return response.data;
     } catch (error) {
         console.error('Error updating order:', error);
+        throw error;
     }
 };
 
 export const getListOfOrders = async () => {
     try {
-        return await api.get('/user/1/farmer/orders');
+        const response = await api.get('/user/1/farmer/orders');
+        return response.data;
     } catch (error) {
-        console.error('Error updating order:', error);
+        console.error('Error fetching orders:', error);
+        throw error;
     }
 };
 
 export const getOrderDetails = async (orderId) => {
-    try {
-        return await api.get(`/user/1/farmer/orders/${orderId}`);
-    } catch (error) {
-        console.error('Error get detail order:', error);
-    }
+    return await api.get(`/user/1/farmer/orders/${orderId}`);
 }
 
 export const fetchAvailableSprayersAPI = async (user_id, order_id) => {
@@ -86,17 +76,9 @@ export const fetchAvailableSprayersAPI = async (user_id, order_id) => {
 };
 
 export const sendFeedbackToAPI = async (user_id, order_id, feedback) => {
-    return await api.post(`/user/${user_id}/orders/${order_id}/feedbacks/`,feedback);
+    return await api.post(`/user/${user_id}/orders/${order_id}/feedbacks/`, feedback);
 }
 
 export const verifyEmail = async (email) => {
-    return await api.get(`/auth/email?email=${email}`);
-}
-
-export const createAcount = async(account) => {
-    return await api.post(`/auth/signup`, account);
-}
-
-export const login = async(credential) => {
-    return await api.post(`/auth/signin`, credential);
+    return await no_token_api_data.get(`/auth/email?email=${email}`);
 }

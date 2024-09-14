@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Droplet, Tractor, Cloud, Sun, TreePalmIcon, Calendar } from 'lucide-react';
+import authService from '../service/AuthService';
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -13,9 +14,13 @@ const SignInPage = () => {
     navigate('/signup');
   };
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
-    // Add sign-in logic here
+    const signinResponse = await authService.signin(email, password);
+      if (signinResponse.jwt) {
+        // Redirect to the dashboard or home page
+        navigate('/');  
+      }
   };
 
   return (

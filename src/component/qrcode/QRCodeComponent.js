@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { API_URL, fetchQRCode } from '../../service/DataService';
+import { fetchQRCode } from '../../service/DataService';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Oval } from 'react-loader-spinner'; // Ensure you have this package installed
+import { API_URL } from '../../utils/axiosConfig';
 
 
 const QRCodeComponent = ({ orderId, content }) => {

@@ -3,11 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Phone, Mail, Home, Star, Droplet, Tractor, Cloud, Sun } from 'lucide-react';
 import { createAcount, login } from '../service/DataService';
+import authService from '../service/AuthService';
+import { useAuth } from '../context/AuthContext';
 
 const UserDetailsSignUpPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { email: initialEmail, password, role } = location.state || {};
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -36,17 +39,17 @@ const UserDetailsSignUpPage = () => {
       phoneNumber: formData.phoneNumber,
       expertise: role === 'SPRAYER' ? formData.expertise : null
     };
-    console.log('User Data:', userData);
+
     try {
-      const response = await createAcount(userData);
-      if (response.status == '200') {
-        const responseSignIn = await login({username: userData.emailAddress, password: userData.passwordHash});
-        if (response.status == '200') {
-            navigate('/');
-        }
+      await authService.signup(userData);
+      const signinResponse = await login(userData.emailAddress, password);
+      if (signinResponse) {
+        // Redirect to the dashboard or home page
+        navigate('/');
       }
     } catch (error) {
-      console.log("Got error: " + error)
+      console.log("Got error: ", error);
+      // Handle error (e.g., show error message to user)
     }
   };
 
