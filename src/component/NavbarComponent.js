@@ -20,6 +20,7 @@ const Navbar = ({ user, onLogout }) => {
             <>
               <span className="mr-4">{t('Welcome')}, {t(user.role)}</span>
               <Link to="/sprayorder" className="mr-4 hover:underline">{t('Create Spray Order')}</Link>
+              <Link to={`/order-manage/${user.role}/${user.id}`} className="mr-4 hover:underline">{t('Order Management')}</Link>
               <NotificationIcon userId={user.id} userRole={user.role} />
             </>
           )}

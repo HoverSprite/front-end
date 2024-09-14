@@ -1,8 +1,11 @@
+// src/component/ordermanagement/OrderListManagement.js
+
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, ChevronDown, Download, Edit, MessageCircle, MapPin, Calendar, Users, Crop, DollarSign, Eye, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getListOfOrders } from '../../service/DataService';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../contexts/UserContext'; // Import useUser
 
 const OrderListManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -10,11 +13,12 @@ const OrderListManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const ordersPerPage = 10;
   const navigate = useNavigate();
+  const { user } = useUser(); // Get user from context
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await getListOfOrders();
+        const response = await getListOfOrders(user);
         console.log(response);
         // The data is already parsed, so we don't need to call response.json()
         if (response.status === 200 && response.data) {
@@ -27,8 +31,10 @@ const OrderListManagement = () => {
       }
     };
 
-    fetchOrders();
-  }, []);
+    if (user && (user.role === 'FARMER' || user.role === 'RECEPTIONIST')) {
+      fetchOrders();
+    }
+  }, [user]);
 
   const filteredOrders = orders.filter(order =>
     Object.values(order).some(value =>

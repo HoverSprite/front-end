@@ -1,3 +1,5 @@
+// src/service/DataService.js
+
 import axios from "axios";
 export const API_URL = "http://localhost:8080/api";
 
@@ -8,7 +10,6 @@ const api = axios.create({
     },
 });
 
-
 export const getPersonList = async () => {
     const response = await fetch('http://localhost:8080/persons');
     const data = await response.json();
@@ -17,7 +18,6 @@ export const getPersonList = async () => {
 }
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 
 export const verify = async (url) => {
     const custom_api = axios.create({
@@ -38,7 +38,6 @@ export const verify = async (url) => {
     }
 }
 
-
 export const fetchQRCode = async (userId, orderId, content) => {
     try {
         const response = await api.get(`/user/${userId}/otp/qr/${orderId}?content=${encodeURIComponent(content)}`, {
@@ -55,6 +54,7 @@ export const fetchQRCode = async (userId, orderId, content) => {
     }
 };
 
+// Modified to accept user
 export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     try {
         console.log(updatedOrder)
@@ -65,17 +65,30 @@ export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     }
 };
 
-export const getListOfOrders = async () => {
+// Modified to accept user
+export const getListOfOrders = async (user) => {
     try {
-        return await api.get('/user/1/farmer/orders');
+        if (user.role === 'FARMER') {
+            return await api.get(`/user/${user.id}/farmer/orders`);
+        } else if (user.role === 'RECEPTIONIST') {
+            return await api.get(`/user/${user.id}/receptionist/orders`);
+        } else {
+            throw new Error('Invalid user role for fetching orders');
+        }
     } catch (error) {
-        console.error('Error updating order:', error);
+        console.error('Error fetching orders:', error);
     }
 };
 
-export const getOrderDetails = async (orderId) => {
+export const getOrderDetails = async (user, orderId) => {
     try {
-        return await api.get(`/user/1/farmer/orders/${orderId}`);
+        if (user.role === 'FARMER') {
+            return await api.get(`/user/${user.id}/farmer/orders/${orderId}`);
+        } else if (user.role === 'RECEPTIONIST') {
+            return await api.get(`/user/${user.id}/receptionist/orders/${orderId}`);
+        } else {
+            throw new Error('Invalid user role for fetching order details');
+        }
     } catch (error) {
         console.error('Error get detail order:', error);
     }
