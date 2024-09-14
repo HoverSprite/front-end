@@ -154,7 +154,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
     }
   };
 
-  const RatingStars = ({ rating, onBlock = true }) => (
+  const RatingStars = ({ rating, onRatingChange, onBlock = false }) => (
     <div className="flex items-center">
       {[1, 2, 3, 4, 5].map((value) => (
         <Star
@@ -163,6 +163,11 @@ const OrderDetails = ({ orderData, onUpdate }) => {
           className={`${value <= rating ? 'text-yellow-400' : 'text-gray-300'} ${
             onBlock ? '' : 'cursor-pointer hover:text-yellow-500'
           }`}
+          onClick={() => {
+            if (!onBlock && onRatingChange) {
+              onRatingChange(value);
+            }
+          }}
         />
       ))}
     </div>
