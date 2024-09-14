@@ -28,7 +28,7 @@ export const verify = async (url) => {
     });
 
     // let otc = localStorage.getItem("otc");
-    let otc = "524994";
+    let otc = "658197";
     try {
         await delay(1000);
         const response = await custom_api.post(``, { otp: otc });
@@ -100,4 +100,16 @@ export const fetchAvailableSprayersAPI = async (user_id, order_id) => {
 
 export const sendFeedbackToAPI = async (user_id, order_id, feedback) => {
     return await api.post(`/user/${user_id}/orders/${order_id}/feedbacks/`,feedback);
+}
+
+export const verifyEmail = async (email) => {
+    return await api.get(`/auth/email?email=${email}`);
+}
+
+export const createAcount = async(account) => {
+    return await api.post(`/auth/signup`, account);
+}
+
+export const login = async(credential) => {
+    return await api.post(`/auth/signin`, credential);
 }

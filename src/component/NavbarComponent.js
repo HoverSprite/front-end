@@ -1,5 +1,7 @@
+// src/component/Navbar.js
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import NotificationIcon from './NotificationIcon';
 import { useTranslation } from '../localization/UseTranslation';
 import { useLanguage } from '../localization/LanguageContext';
@@ -10,6 +12,11 @@ const Navbar = ({ user, onLogout }) => {
   const { t } = useTranslation();
   const { language, toggleLanguage } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleOrderManagementClick = () => {
+    navigate('/order-manage');
+  };
 
   return (
     <nav className={`${isDark ? 'bg-gray-800' : 'bg-green-600'} text-white p-4 transition-colors duration-200`}>
@@ -20,7 +27,9 @@ const Navbar = ({ user, onLogout }) => {
             <>
               <span className="mr-4">{t('Welcome')}, {t(user.role)}</span>
               <Link to="/sprayorder" className="mr-4 hover:underline">{t('Create Spray Order')}</Link>
-              <Link to={`/order-manage/${user.role}/${user.id}`} className="mr-4 hover:underline">{t('Order Management')}</Link>
+              <button onClick={handleOrderManagementClick} className="mr-4 hover:underline">
+                {t('Order Management')}
+              </button>
               <NotificationIcon userId={user.id} userRole={user.role} />
             </>
           )}
