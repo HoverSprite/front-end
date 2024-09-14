@@ -14,6 +14,7 @@ import {
   Button,
   CircularProgress
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import NotificationIcon from './NotificationIcon';
 
 const SprayerDashboard = ({ user }) => {
@@ -57,6 +58,11 @@ const SprayerDashboard = ({ user }) => {
           Sprayer Dashboard
         </Typography>
         <NotificationIcon userId={user.id} userRole="SPRAYER" />
+        <Link to="/map">
+          <Button variant="contained" color="primary" sx={{ mb: 2 }}>
+            View Map
+          </Button>
+        </Link>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>

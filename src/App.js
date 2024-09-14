@@ -5,10 +5,15 @@ import FarmerDashboard from './component/FarmerDashboard';
 import ReceptionistDashboard from './component/ReceptionistDashboard';
 import SprayerDashboard from './component/SprayerDashboard';
 import SprayOrderPage from './component/SprayOrderPage';
+import MapComponent from './component/MapComponent';
 import Navbar from './component/NavbarComponent';
+import { LanguageProvider } from './localization/LanguageContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useTheme } from './contexts/ThemeContext';
 
-const App = () => {
+const AppContent = () => {
   const [user, setUser] = useState(null);
+  const { isDark } = useTheme();
 
   const handleSelectRole = (role) => {
     if (role === 'FARMER') {
@@ -25,7 +30,7 @@ const App = () => {
   };
 
   return (
-    <>
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
       {user && <Navbar user={user} onLogout={handleLogout} />}
       <Routes>
         <Route 
@@ -48,8 +53,22 @@ const App = () => {
           path="/sprayorder" 
           element={user ? <SprayOrderPage user={user} /> : <Navigate to="/" />} 
         />
+        <Route 
+          path="/map" 
+          element={user && user.role === 'SPRAYER' ? <MapComponent /> : <Navigate to="/" />} 
+        />
       </Routes>
-    </>
+    </div>
+  );
+};
+
+const App = () => {
+  return (
+    <LanguageProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 };
 

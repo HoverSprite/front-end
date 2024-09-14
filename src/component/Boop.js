@@ -11,6 +11,8 @@ import {
   Container,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import lunar from 'chinese-lunar'; // Library for Lunar date conversion
+import { Moon, Hemisphere } from 'lunarphase-js'; // Library for moon phases
 
 const TimeSlotButton = styled(Button)(({ theme, available }) => ({
   padding: theme.spacing(1.5),
@@ -25,11 +27,19 @@ const TimeSlotButton = styled(Button)(({ theme, available }) => ({
 const DayPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   height: '100%',
-  minHeight: '200px',  // Ensure responsiveness
+  minHeight: '200px',
   display: 'flex',
   flexDirection: 'column',
-  justifyContent: 'space-between',  // Ensure even spacing
+  justifyContent: 'space-between',
   alignItems: 'center',
+}));
+
+const Divider = styled('hr')(({ theme }) => ({
+  border: 'none',
+  height: '4px', // Thickness of the line
+  backgroundColor: 'orange', // Orange color for distinction
+  margin: theme.spacing(2, 0), // Margin for spacing
+  width: '100%', // Full width
 }));
 
 const WeeklyCalendar = ({ onSelectTimeSlot }) => {
@@ -72,6 +82,16 @@ const WeeklyCalendar = ({ onSelectTimeSlot }) => {
     const weekStart = startOfWeek(selectedDate);
     return Array.from({ length: 7 }).map((_, index) => {
       const date = addDays(weekStart, index);
+
+      // Convert the Gregorian date to Lunar using chinese-lunar
+      const lunarDate = lunar.solarToLunar(date);
+      const lunarDay = lunarDate.day;
+      const lunarMonth = lunarDate.month;
+      const isLeapMonth = lunarDate.isLeap ? "(Leap)" : "";
+
+      // Get the lunar phase emoji using lunarphase-js
+      const moonPhaseEmoji = Moon.lunarPhaseEmoji(date, Hemisphere.NORTHERN);
+
       return (
         <Grid item xs={12} sm={6} md={4} lg={1.7} key={index} sx={{ display: 'flex' }}>
           <DayPaper elevation={3}>
@@ -79,7 +99,8 @@ const WeeklyCalendar = ({ onSelectTimeSlot }) => {
               {format(date, 'EEE')}
             </Typography>
             <Typography variant="body1" align="center" sx={{ mb: 1 }}>
-              {format(date, 'dd/MM')}
+              {format(date, 'dd/MM')} <br />
+              {`${moonPhaseEmoji} ${lunarDay}/${lunarMonth} ${isLeapMonth}`}
             </Typography>
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               {renderTimeSlots(date)}
@@ -91,27 +112,53 @@ const WeeklyCalendar = ({ onSelectTimeSlot }) => {
   };
 
   const renderTimeSlots = (date) => {
-    return timeSlots.map((time, index) => {
-      const available = isSlotAvailable(date, time);
-      return (
-        <Tooltip
-          key={index}
-          title={available ? 'Available' : 'Not Available'}
-          arrow
-          placement="top"
-        >
-          <TimeSlotButton
-            fullWidth
-            variant="contained"
-            available={available ? 1 : 0}
-            onClick={() => handleSlotSelect(date, time)}
-            disabled={!available}
-          >
-            {time}
-          </TimeSlotButton>
-        </Tooltip>
-      );
-    });
+    return (
+      <Box>
+        {timeSlots.slice(0, 4).map((time, index) => { // Morning Slots
+          const available = isSlotAvailable(date, time);
+          return (
+            <Tooltip
+              key={index}
+              title={available ? 'Available' : 'Not Available'}
+              arrow
+              placement="top"
+            >
+              <TimeSlotButton
+                fullWidth
+                variant="contained"
+                available={available ? 1 : 0}
+                onClick={() => handleSlotSelect(date, time)}
+                disabled={!available}
+              >
+                {time}
+              </TimeSlotButton>
+            </Tooltip>
+          );
+        })}
+        <Divider /> {/* Orange line separator */}
+        {timeSlots.slice(4).map((time, index) => { // Afternoon Slots
+          const available = isSlotAvailable(date, time);
+          return (
+            <Tooltip
+              key={index}
+              title={available ? 'Available' : 'Not Available'}
+              arrow
+              placement="top"
+            >
+              <TimeSlotButton
+                fullWidth
+                variant="contained"
+                available={available ? 1 : 0}
+                onClick={() => handleSlotSelect(date, time)}
+                disabled={!available}
+              >
+                {time}
+              </TimeSlotButton>
+            </Tooltip>
+          );
+        })}
+      </Box>
+    );
   };
 
   return (
