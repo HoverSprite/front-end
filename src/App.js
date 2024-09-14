@@ -7,6 +7,15 @@ import SprayerDashboard from './component/SprayerDashboard';
 import SprayOrderPage from './component/SprayOrderPage';
 import MapComponent from './component/MapComponent';
 import Navbar from './component/NavbarComponent';
+import './App.css';
+import HomePage from './perspective/HomePage';
+import ScanPage from './perspective/ScanPage';
+import QRCodePage from './perspective/QRCodePage';
+import OrderManagementPage from './perspective/OrderManagementPage';
+import Dashboard from './component/ordermanagement/Code1';
+import OrderDetailComponent from './component/ordermanagement/OrdeDetailComponent';
+import ShopZenApp from './component/ordermanagement/Code4';
+import PaymentPage from "./perspective/PaymentPage";
 import { LanguageProvider } from './localization/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useTheme } from './contexts/ThemeContext';
@@ -28,6 +37,7 @@ const AppContent = () => {
   const handleLogout = () => {
     setUser(null);
   };
+
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
@@ -57,9 +67,19 @@ const AppContent = () => {
           path="/map" 
           element={user && user.role === 'SPRAYER' ? <MapComponent /> : <Navigate to="/" />} 
         />
+
+      <Route path="/" element={<HomePage />} />
+        <Route path="/scan" element={<ScanPage />} />
+        <Route path="/qr" element={<QRCodePage />} />
+        <Route path="/order-manage" element={<OrderManagementPage />} />
+        <Route path="/code1" element={<Dashboard />} />
+        <Route path="/order-detail" element={<OrderDetailComponent />} />
+        <Route path="/code4" element={<ShopZenApp />} />
+        <Route path="/payment" element={<PaymentPage />} />
       </Routes>
     </div>
   );
+   
 };
 
 const App = () => {
@@ -73,3 +93,4 @@ const App = () => {
 };
 
 export default App;
+

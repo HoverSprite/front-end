@@ -1,6 +1,6 @@
 import { createStore, applyMiddleware, combineReducers } from 'redux';
 import { Provider } from 'react-redux';
-import undoable, { excludeAction } from 'redux-undo';
+import undoable from 'redux-undo';
 import tabsReducer from './tabsReducer'; // create this reducer
 import { thunk } from 'redux-thunk';
 import bypassUndoMiddleware from './middleware';
