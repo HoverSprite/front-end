@@ -351,7 +351,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
   const handleAutoAssignChange = (checked) => {
     setOrder((prevOrder) => ({
       ...prevOrder,
-      autoAssign: checked // Update state with new toggle value
+      autoAssign: checked
     }));
   };
 
@@ -689,7 +689,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             </div>
           )}
 
-          {activeTab === 'available' && isEditing && (
+          {activeTab === 'available' && user.roles.includes('ROLE_RECEPTIONIST') && isEditing && (
             <div>
               {Object.entries(availableSprayers).map(([expertise, sprayers]) => (
                 <div key={expertise} className="mb-4">
@@ -761,7 +761,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             </>
           ) : (
             (order.status !== 'IN_PROGRESS' && order.status !== 'SPRAY_COMPLETED' && order.status != 'COMPLETED') && 
-            (user.roles.includes('ROLE_RECEPTIONIST') || user.roles.includes('ROLE_FARMER')) && (
+            (user.roles.includes('ROLE_RECEPTIONIST') || ( order.status === 'PENDING' && user.roles.includes('ROLE_FARMER'))) && (
               <button
               onClick={handleEdit}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
