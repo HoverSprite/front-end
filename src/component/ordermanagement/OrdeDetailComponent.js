@@ -1,15 +1,9 @@
-// src/component/ordermanagement/OrderDetailComponent.js
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, ChevronDown, ArrowLeft, Menu, X } from 'lucide-react';
-import axios from 'axios';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import 'leaflet/dist/leaflet.css';
-import 'react-datepicker/dist/react-datepicker.css';
-import OrderDetails from '../../fragment/ordermanagement/OrderDetails';
+import { Calendar, MapPin, Droplet, ArrowRight, Leaf, Shield, Crop } from 'lucide-react';
+import { ArrowLeft, Bell, Search } from 'lucide-react';
 import { getOrderDetails } from '../../service/DataService';
-import Sidebar from './SideBar'; // Ensure Sidebar is correctly imported
+import OrderDetails from '../../fragment/ordermanagement/OrderDetails';
 import { useAuth } from '../../context/AuthContext';
 
 const OrderDetailComponent = () => {
@@ -18,7 +12,6 @@ const OrderDetailComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [forceUpdate, setForceUpdate] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -34,7 +27,6 @@ const OrderDetailComponent = () => {
       try {
         setLoading(true);
         const response = await getOrderDetails(orderId);
-        console.log(response.data);
         if (response && response.data) {
           setOrderData(response.data);
         } else {
@@ -55,18 +47,14 @@ const OrderDetailComponent = () => {
     try {
       const response = await getOrderDetails(updatedData.id);
       setOrderData({ ...response.data });
-      setForceUpdate((prev) => prev + 1); // Trigger a re-render
+      setForceUpdate((prev) => prev + 1);
     } catch (error) {
       console.error('Error updating order:', error);
     }
   };
 
-  useEffect(() => {
-    console.log("here")
-  }, [forceUpdate]);
-
   const handleGoBack = () => {
-    navigate('/');
+    navigate('/order-manage');
   };
 
   if (loading) {
@@ -78,46 +66,38 @@ const OrderDetailComponent = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      <div className="bg-white shadow">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="flex justify-between items-center py-6">
-            <button
-              onClick={handleGoBack}
-              className="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 flex items-center"
-            >
-              <ArrowLeft className="mr-1" />
-              Back
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
-            <div className="hidden md:flex items-center space-x-4">
-              <Search className="text-gray-500" />
-              <Bell className="text-gray-500" />
-              <div className="flex items-center">
-                <img src="/api/placeholder/32/32" alt="User" className="w-8 h-8 rounded-full mr-2" />
-                <ChevronDown className="text-gray-500" />
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <div className="bg-green-500 rounded-full p-2 mr-3">
+                <Crop className="text-white" size={24} />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-800">HoverSprite</h1>
+                <p className="text-sm text-gray-600">Efficient Crop Management</p>
               </div>
             </div>
-            <button 
-              className="md:hidden text-gray-500"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu size={24} />
-            </button>
+            <nav className="hidden md:flex space-x-8">
+              <a href="#" className="text-gray-600 hover:text-gray-900">Home</a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">Services</a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">About Us</a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">Contact</a>
+            </nav>
+            <div className="flex items-center space-x-4">
+              <button className="text-gray-500 hover:text-gray-700">
+                <Bell size={20} />
+              </button>
+              <img src="/api/placeholder/32/32" alt="User" className="w-8 h-8 rounded-full" />
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)} 
-      />
-
-      <div className="flex-grow">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-          <OrderDetails orderData={orderData} onUpdate={handleUpdateOrder} />
-        </div>
-      </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <OrderDetails orderData={orderData} onUpdate={handleUpdateOrder} />
+      </main>
     </div>
   );
 };

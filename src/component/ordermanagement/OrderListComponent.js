@@ -1,5 +1,3 @@
-// src/component/ordermanagement/OrderListManagement.js
-
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, ChevronDown, Download, Edit, MessageCircle, MapPin, Calendar, Users, Crop, DollarSign, Eye, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -37,6 +35,10 @@ const OrderListManagement = () => {
 
   const handleViewDetails = (orderId) => {
     navigate(`/order-detail?orderId=${orderId}`);
+  };
+
+  const handleCreateNewOrder = () => {
+    navigate(`/create`);
   };
 
   const indexOfLastOrder = currentPage * ordersPerPage;
@@ -120,148 +122,164 @@ const OrderListManagement = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      <div className="bg-white shadow fixed top-0 left-0 w-full z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4 sm:py-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Order Management</h1>
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <div className="bg-green-500 rounded-full p-2 mr-3">
+                <Crop className="text-white" size={24} />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-800">HoverSprite</h1>
+                <p className="text-sm text-gray-600">Efficient Crop Management</p>
+              </div>
+            </div>
+            <nav className="hidden md:flex space-x-8">
+              <a href="#" className="text-gray-600 hover:text-gray-900">Home</a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">Services</a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">About Us</a>
+              <a href="#" className="text-gray-600 hover:text-gray-900">Contact</a>
+            </nav>
             <div className="flex items-center space-x-4">
-              <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md transition duration-300 flex items-center">
-                <Plus size={16} className="mr-1" />
-                <span className="hidden sm:inline">New Order</span>
-              </button>
               <button className="text-gray-500 hover:text-gray-700">
                 <Bell size={20} />
               </button>
-              <div className="flex items-center">
-                <img src="/api/placeholder/32/32" alt="User" className="w-8 h-8 rounded-full" />
-                <ChevronDown size={16} className="text-gray-500 ml-1" />
-              </div>
+              <img src="/api/placeholder/32/32" alt="User" className="w-8 h-8 rounded-full" />
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="flex-grow max-w-7xl sm:mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-20">
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search orders"
-              className="pl-10 pr-4 py-2 border rounded-md w-full sm:w-64"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-800">Order Management</h2>
           </div>
-          <div className="flex space-x-2 w-full sm:w-auto">
-            <button className="px-3 py-2 border rounded-md flex items-center justify-center w-full sm:w-auto">
-              Filters <ChevronDown size={16} className="ml-1" />
-            </button>
-            <button className="px-3 py-2 border rounded-md flex items-center justify-center w-full sm:w-auto">
-              Sort <ChevronDown size={16} className="ml-1" />
-            </button>
-          </div>
-        </div>
+          
+          <div className="p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+              <div className="relative w-full sm:w-64 mb-4 sm:mb-0">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search orders"
+                  className="pl-10 pr-4 py-2 border rounded-md w-full"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex space-x-2">
+                <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex items-center"
+                onClick={handleCreateNewOrder}>
+                  <Plus size={16} className="mr-2" />
+                  New Order
+                </button>
+                <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition duration-300">
+                  Filters
+                </button>
+                <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition duration-300">
+                  Sort
+                </button>
+              </div>
+            </div>
 
-        {/* Mobile Order Cards */}
-        <div className="sm:hidden space-y-4">
-          {currentOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
-        </div>
 
-        {/* Desktop Order Table */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-full bg-white rounded-lg shadow">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crop Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Area</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {currentOrders.map((order) => (
-                <motion.tr
-                  key={order.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.dateTime).toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.farmer}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.cropType}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.area} m²</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.cost.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={order.status} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-800">
-                        <Edit size={16} />
-                      </button>
-                      <button className="text-gray-600 hover:text-gray-800">
-                        <Download size={16} />
-                      </button>
-                      <button className="text-green-600 hover:text-green-800">
-                        <MessageCircle size={16} />
-                      </button>
-                      <button
-                        className="text-purple-600 hover:text-purple-800"
-                        onClick={() => handleViewDetails(order.id)}
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between">
-          <div className="text-sm text-gray-700 mb-4 sm:mb-0">
-            Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} entries
-          </div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-            >
-              Previous
-            </button>
-            {[...Array(Math.ceil(filteredOrders.length / ordersPerPage)).keys()].map((number) => (
-              <button
-                key={number + 1}
-                onClick={() => paginate(number + 1)}
-                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === number + 1 ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-              >
-                {number + 1}
-              </button>
+            <div className="sm:hidden space-y-4">
+            {currentOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
             ))}
-            <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === Math.ceil(filteredOrders.length / ordersPerPage)}
-              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-            >
-              Next
-            </button>
-          </nav>
+            </div>
+
+
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {['Order ID', 'Date', 'Farmer ID', 'Crop Type', 'Area', 'Cost', 'Status', 'Actions'].map((header) => (
+                      <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentOrders.map((order) => (
+                    <motion.tr 
+                      key={order.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.dateTime).toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.farmer}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.cropType}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.area} m²</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.cost.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={order.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button className="text-blue-600 hover:text-blue-800" onClick={() => handleViewDetails(order.id)}>
+                            <Eye size={16} />
+                          </button>
+                          <button className="text-gray-600 hover:text-gray-800">
+                            <Edit size={16} />
+                          </button>
+                          <button className="text-gray-600 hover:text-gray-800">
+                            <Download size={16} />
+                          </button>
+                          <button className="text-green-600 hover:text-green-800">
+                            <MessageCircle size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="mt-6 flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} entries
+              </div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                {[...Array(Math.ceil(filteredOrders.length / ordersPerPage)).keys()].map((number) => (
+                  <button
+                    key={number + 1}
+                    onClick={() => paginate(number + 1)}
+                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                      currentPage === number + 1 ? 'bg-green-50 text-green-600' : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {number + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === Math.ceil(filteredOrders.length / ordersPerPage)}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

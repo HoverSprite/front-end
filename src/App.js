@@ -84,6 +84,12 @@ function AppRoutes() {
         <Route
           path="/"
           element={
+              <AnimatedPage><HomePage /></AnimatedPage>
+          }
+        />
+        <Route
+          path="/order-manage"
+          element={
             <ProtectedRoute>
               <AnimatedPage><OrderManagementPage /></AnimatedPage>
             </ProtectedRoute>
