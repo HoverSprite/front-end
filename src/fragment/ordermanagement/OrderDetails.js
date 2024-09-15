@@ -4,13 +4,12 @@ import { MapPin, Calendar, DollarSign, Users, Crop, ChevronDown, Edit, Plus, Sav
 import { format, parse, setHours, setMinutes, addHours } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
 import 'leaflet/dist/leaflet.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { sendUpdatedOrderToAPI, fetchAvailableSprayersAPI, sendFeedbackToAPI } from '../../service/DataService';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const LazyImage = ({ imageData, alt, onImageClick }) => {
   const [imageUrl, setImageUrl] = useState(null);
@@ -59,6 +58,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
   const [activeTab, setActiveTab] = useState('assigned');
   const [removedSprayers, setRemovedSprayers] = useState([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
 
   const [comment, setComment] = useState('');
@@ -132,7 +132,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
         images: base64Images.map(base64 => ({ imageStr: base64 }))
       };
 
-      const response = await sendFeedbackToAPI(1, order.id, feedback);
+      const response = await sendFeedbackToAPI(order.id, feedback);
       if (response.status === 200 || response.status === 201) {
         // Reset form after successful submission
         setComment('');
@@ -183,13 +183,13 @@ const OrderDetails = ({ orderData, onUpdate }) => {
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
             {sprayer.profilePictureUrl ? (
-              <img src={sprayer.profilePictureUrl} alt={`${sprayer.firstName} ${sprayer.lastName}`} className="w-full h-full object-cover" />
+              <img src={sprayer.profilePictureUrl} alt={`${sprayer.fullName}`} className="w-full h-full object-cover" />
             ) : (
               <Users size={24} className="text-gray-500" />
             )}
           </div>
           <div>
-            <p className="font-medium text-sm">{sprayer.firstName} {sprayer.lastName}</p>
+            <p className="font-medium text-sm">{sprayer.fullName}</p>
             <p className="text-xs text-gray-500">{sprayer.expertise}</p>
             {count !== undefined && (
               <div className="flex items-center mt-1">
@@ -243,7 +243,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
 
   const fetchAvailableSprayers = async () => {
     try {
-      const response = await fetchAvailableSprayersAPI(1, order.id);
+      const response = await fetchAvailableSprayersAPI(order.id);
       setAvailableSprayers(response.data);
     } catch (error) {
       console.error('Error fetching available sprayers:', error);
@@ -428,8 +428,8 @@ const OrderDetails = ({ orderData, onUpdate }) => {
 
   const handleStatusChange = async (newStatus) => {
     const updatedOrder = { ...order, status: newStatus };
-    setOrder(updatedOrder);
     await sendUpdatedOrderToAPI(updatedOrder);
+    setOrder(updatedOrder);
     onUpdate(updatedOrder);
   };
 
@@ -567,7 +567,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
         </div>
         <div className="flex flex-col items-end space-y-2">
           <StatusBadge status={order.status} />
-          {order.status === 'SPRAY_COMPLETED' && (
+          {order.status === 'SPRAY_COMPLETED' && user.roles.includes('ROLE_FARMER') && (
             <motion.button
               onClick={handlePayment}
               className="group relative px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 ease-in-out"
@@ -581,17 +581,21 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               <span className="absolute left-0 top-0 h-full w-0 bg-white opacity-20 transition-all duration-300 ease-out group-hover:w-full"></span>
             </motion.button>
           )}
-          <motion.button
-            onClick={handleQrCodeNavigation}
-            className="group relative px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className="flex items-center">
-              <QrCode className="h-4 w-4" />
-            </span>
-            <span className="absolute left-0 top-0 h-full w-0 bg-white opacity-20 transition-all duration-300 ease-out group-hover:w-full"></span>
-          </motion.button>
+          {
+            order.status === 'SPRAY_COMPLETED' && user.roles.includes('ROLE_SPRAYER') && (
+              <motion.button
+              onClick={handleQrCodeNavigation}
+              className="group relative px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 ease-in-out"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="flex items-center">
+                <QrCode className="h-4 w-4" />
+              </span>
+              <span className="absolute left-0 top-0 h-full w-0 bg-white opacity-20 transition-all duration-300 ease-out group-hover:w-full"></span>
+            </motion.button>
+            )
+          }
         </div>
       </div>
 
@@ -637,7 +641,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
         <h3 className="text-lg font-semibold mb-4">Farmer Information</h3>
         <p className="text-sm text-gray-700 mb-2">
           <Users className="inline mr-2" size={16} />
-          {order.farmer.firstName} {order.farmer.lastName}
+          {order.farmer.fullName}
         </p>
       </div>
 
@@ -712,7 +716,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
 
       <div className="mt-8 flex flex-wrap justify-between items-center">
         <div className="flex space-x-4">
-          {order.status === 'PENDING' && (
+          {order.status === 'PENDING' && user.roles.includes('ROLE_RECEPTIONIST') && (
             <button
               onClick={() => handleStatusChange('CONFIRMED')}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -720,7 +724,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               Confirm
             </button>
           )}
-          {order.status === 'ASSIGNED' && (
+          {order.status === 'ASSIGNED' && user.roles.includes('ROLE_SPRAYER') && (
             <button
               onClick={() => handleStatusChange('IN_PROGRESS')}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -728,7 +732,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               In Spray Progress
             </button>
           )}
-          {order.status === 'IN_PROGRESS' && (
+          {order.status === 'IN_PROGRESS' && user.roles.includes('ROLE_SPRAYER') && (
             <button
               onClick={() => handleStatusChange('SPRAY_COMPLETED')}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -756,7 +760,8 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               </button>
             </>
           ) : (
-            (order.status !== 'IN_PROGRESS' && order.status !== 'SPRAY_COMPLETED' && order.status != 'COMPLETED') && (
+            (order.status !== 'IN_PROGRESS' && order.status !== 'SPRAY_COMPLETED' && order.status != 'COMPLETED') && 
+            (user.roles.includes('ROLE_RECEPTIONIST') || user.roles.includes('ROLE_FARMER')) && (
               <button
               onClick={handleEdit}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -784,7 +789,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
       )}
 
       <AnimatePresence>
-      {order.status === 'COMPLETED' && (
+      {order.status === 'COMPLETED' && user.roles.includes('ROLE_FARMER') && (
         <motion.div
           key="feedback-form"
           initial={{ opacity: 0, y: 20 }}

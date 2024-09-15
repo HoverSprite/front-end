@@ -13,7 +13,7 @@ const QRCodeComponent = ({ orderId, content }) => {
     const order_id = searchParams.get('orderId');
 
     useEffect(() => {
-        const fetchQR = async (userId, orderId) => {
+        const fetchQR = async (orderId) => {
             try {
                 const api = API_URL + `/otp/verify/${orderId}`;
                 const data = await fetchQRCode(orderId, api);
@@ -25,7 +25,7 @@ const QRCodeComponent = ({ orderId, content }) => {
             }
         };
 
-        fetchQR(1, order_id);
+        fetchQR(order_id);
     }, [orderId, content]);
 
     return (

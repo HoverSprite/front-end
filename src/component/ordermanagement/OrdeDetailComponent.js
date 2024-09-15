@@ -34,6 +34,7 @@ const OrderDetailComponent = () => {
       try {
         setLoading(true);
         const response = await getOrderDetails(orderId);
+        console.log(response.data);
         if (response && response.data) {
           setOrderData(response.data);
         } else {
