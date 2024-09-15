@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Phone, Mail, Home, Star, Droplet, Tractor, Cloud, Sun } from 'lucide-react';
@@ -11,6 +11,14 @@ const UserDetailsSignUpPage = () => {
   const location = useLocation();
   const { email: initialEmail, password, role } = location.state || {};
   const { login } = useAuth();
+
+  useEffect(() => {
+    if (!initialEmail || !password || !role) {
+      const timer = setTimeout(() => {
+        navigate('/signup');
+      }, 1000);
+    }
+  }, [initialEmail, password, role, navigate]);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -52,6 +60,10 @@ const UserDetailsSignUpPage = () => {
       // Handle error (e.g., show error message to user)
     }
   };
+
+  if (!initialEmail || !password || !role) {
+    return null;
+  }
 
 
   return (

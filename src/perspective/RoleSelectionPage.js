@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Tractor, UserCircle, Droplets, ChevronRight } from 'lucide-react';
@@ -33,8 +33,27 @@ const RoleCard = ({ icon: Icon, color, title, description, isSelected, onClick }
 const RoleSelectionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { email, password } = location.state;
-  const [selectedRole, setSelectedRole] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Check if state exists and has necessary data
+    if (location.state && location.state.email && location.state.password) {
+      setEmail(location.state.email);
+      setPassword(location.state.password);
+    } else {
+      // If state is missing, set an error and prepare to redirect
+      setError('Required information is missing. Redirecting to sign up page...');
+      const timer = setTimeout(() => {
+        navigate('/signup');
+      }, 1000);  // Redirect after 3 seconds
+
+      // Clean up timer
+      return () => clearTimeout(timer);
+    }
+  }, [location.state, navigate]);
 
   const roles = [
     {
@@ -66,8 +85,10 @@ const RoleSelectionPage = () => {
 
   const handleContinue = () => {
     if (selectedRole) {
-        const sprayerRole = roles.find(role => role.title === selectedRole);
+      const sprayerRole = roles.find(role => role.title === selectedRole);
       navigate('/user-details', { state: { email, password, role: sprayerRole.code } });
+    } else {
+      setError('Please select a role before continuing.');
     }
   };
 

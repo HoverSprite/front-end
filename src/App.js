@@ -1,7 +1,6 @@
-// // src/App.js
 import './App.css';
 import './utils/axiosConfig';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import HomePage from './perspective/HomePage';
 import ScanPage from './perspective/ScanPage';
@@ -15,7 +14,8 @@ import SignUpPage from './perspective/SignUpPage';
 import SignInPage from './perspective/SignInPage';
 import RoleSelectionPage from './perspective/RoleSelectionPage';
 import UserDetailsSignUpPage from './perspective/UserDetailsPage';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import SprayOrderPage from './component/SprayOrderPage';
 
 const pageVariants = {
   initial: {
@@ -55,126 +55,121 @@ const AnimatedPage = ({ children }) => {
   );
 };
 
-function App() {
-  const location = useLocation();
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>; // Or any loading indicator
+  }
 
+  if (!user) {
+    return <Navigate to="/signin" replace />;
+  }
+  return children;
+};
+
+function AppRoutes() {
+  const location = useLocation();
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>; // Or any loading indicator
+  }
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/signin" element={<AnimatedPage><SignInPage /></AnimatedPage>} />
+        <Route path="/signup" element={<AnimatedPage><SignUpPage /></AnimatedPage>} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><OrderManagementPage /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/scan"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><ScanPage /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/qr"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><QRCodePage /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/code1"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><Dashboard /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-detail"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><OrderDetailComponent /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/code4"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><ShopZenApp /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><PaymentPage /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage><SprayOrderPage /></AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/role-selection"
+          element={
+              <AnimatedPage><RoleSelectionPage /></AnimatedPage>
+          }
+        />
+        <Route
+          path="/user-details"
+          element={
+              <AnimatedPage><UserDetailsSignUpPage /></AnimatedPage>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
+function App() {
   return (
     <div className="App">
       <AuthProvider>
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          {/* <Route path="/" element={<AnimatedPage><FarmerDashboard /></AnimatedPage>} /> */}
-          <Route path="/scan" element={<AnimatedPage><ScanPage /></AnimatedPage>} />
-          <Route path="/qr" element={<AnimatedPage><QRCodePage /></AnimatedPage>} />
-          <Route path="/" element={<AnimatedPage><OrderManagementPage /></AnimatedPage>} />
-          <Route path="/code1" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
-          <Route path="/order-detail" element={<AnimatedPage><OrderDetailComponent /></AnimatedPage>} />
-          <Route path="/code4" element={<AnimatedPage><ShopZenApp /></AnimatedPage>} />
-          <Route path="/payment" element={<AnimatedPage><PaymentPage /></AnimatedPage>} />
-          <Route path="/signin" element={<AnimatedPage><SignInPage /></AnimatedPage>} />
-          <Route path="/signup" element={<AnimatedPage><SignUpPage /></AnimatedPage>} />
-          <Route path="/role-selection" element={<AnimatedPage><RoleSelectionPage /></AnimatedPage>} />
-          <Route path="/user-details" element={<AnimatedPage><UserDetailsSignUpPage /></AnimatedPage>} />
-        </Routes>
-      </AnimatePresence>
+        <AppRoutes />
       </AuthProvider>
     </div>
   );
 }
 
 export default App;
-// import React, { useState } from 'react';
-// import { Route, Routes, Navigate } from 'react-router-dom';
-// import RoleSelection from './component/RoleSelection';
-// import FarmerDashboard from './component/FarmerDashboard';
-// import ReceptionistDashboard from './component/ReceptionistDashboard';
-// import SprayerDashboard from './component/SprayerDashboard';
-// import SprayOrderPage from './component/SprayOrderPage';
-// import MapComponent from './component/MapComponent';
-// import Navbar from './component/NavbarComponent';
-// import './App.css';
-// import HomePage from './perspective/HomePage';
-// import ScanPage from './perspective/ScanPage';
-// import QRCodePage from './perspective/QRCodePage';
-// import OrderManagementPage from './perspective/OrderManagementPage';
-// import Dashboard from './component/ordermanagement/Code1';
-// import OrderDetailComponent from './component/ordermanagement/OrdeDetailComponent.js';
-// import ShopZenApp from './component/ordermanagement/Code4';
-// import PaymentPage from "./perspective/PaymentPage";
-// import { LanguageProvider } from './localization/LanguageContext';
-// import { ThemeProvider } from './contexts/ThemeContext';
-// import { useTheme } from './contexts/ThemeContext';
-// import { UserProvider } from './contexts/UserContext'; // Import UserProvider
-
-// const AppContent = () => {
-//   const [user, setUser] = useState(null);
-//   const { isDark } = useTheme();
-
-//   const handleSelectRole = (role) => {
-//     if (role === 'FARMER') {
-//       setUser({ role: 'FARMER', id: '1' });
-//     } else if (role === 'RECEPTIONIST') {
-//       setUser({ role: 'RECEPTIONIST', id: '2' });
-//     } else if (role === 'SPRAYER') {
-//       setUser({ role: 'SPRAYER', id: '3' });
-//     }
-//   };
-
-//   const handleLogout = () => {
-//     setUser(null);
-//   };
-
-//   return (
-//     <UserProvider user={user} setUser={setUser}> {/* Wrap with UserProvider */}
-//       <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
-//         {user && <Navbar user={user} onLogout={handleLogout} />}
-//         <Routes>
-//           <Route 
-//             path="/" 
-//             element={user ? <Navigate to={`/${user.role.toLowerCase()}`} /> : <RoleSelection onSelectRole={handleSelectRole} />} 
-//           />
-//           <Route 
-//             path="/farmer" 
-//             element={user && user.role === 'FARMER' ? <FarmerDashboard /> : <Navigate to="/" />} 
-//           />
-//           <Route 
-//             path="/receptionist" 
-//             element={user && user.role === 'RECEPTIONIST' ? <ReceptionistDashboard /> : <Navigate to="/" />} 
-//           />
-//           <Route 
-//             path="/sprayer" 
-//             element={user && user.role === 'SPRAYER' ? <SprayerDashboard user={user} /> : <Navigate to="/" />} 
-//           />
-//           <Route 
-//             path="/sprayorder" 
-//             element={user ? <SprayOrderPage user={user} /> : <Navigate to="/" />} 
-//           />
-//           <Route 
-//             path="/map" 
-//             element={user && user.role === 'SPRAYER' ? <MapComponent /> : <Navigate to="/" />} 
-//           />
-//           <Route path="/" element={<HomePage />} />
-//           <Route path="/scan" element={<ScanPage />} />
-//           <Route path="/qr" element={<QRCodePage />} />
-//           <Route path="/order-manage" element={<OrderManagementPage />} />
-//           <Route path="/code1" element={<Dashboard />} />
-//           <Route path="/order-detail" element={<OrderDetailComponent />} />
-//           <Route path="/code4" element={<ShopZenApp />} />
-//           <Route path="/payment" element={<PaymentPage />} />
-//         </Routes>
-//       </div>
-//     </UserProvider>
-//   );
-// };
-
-// const App = () => {
-//   return (
-//     <LanguageProvider>
-//       <ThemeProvider>
-//         <AppContent />
-//       </ThemeProvider>
-//     </LanguageProvider>
-//   );
-// };
-
-// export default App;

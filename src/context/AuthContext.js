@@ -24,7 +24,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     const userInfo = await authService.signin(username, password);
-    console.log(userInfo);
     setUser(userInfo);
     return userInfo;
   };
@@ -40,6 +39,10 @@ export const AuthProvider = ({ children }) => {
     logout,
     loading,
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Or any loading indicator
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
