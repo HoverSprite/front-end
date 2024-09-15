@@ -10,7 +10,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import OrderDetails from '../../fragment/ordermanagement/OrderDetails';
 import { getOrderDetails } from '../../service/DataService';
 import Sidebar from './SideBar'; // Ensure Sidebar is correctly imported
-import { useUser } from '../../contexts/UserContext'; // Import useUser
+import { useAuth } from '../../context/AuthContext';
 
 const OrderDetailComponent = () => {
   const [orderData, setOrderData] = useState(null);
@@ -19,7 +19,7 @@ const OrderDetailComponent = () => {
   const location = useLocation();
   const [forceUpdate, setForceUpdate] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { user } = useUser(); // Get user from context
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -33,7 +33,7 @@ const OrderDetailComponent = () => {
 
       try {
         setLoading(true);
-        const response = await getOrderDetails(user, orderId);
+        const response = await getOrderDetails(orderId);
         if (response && response.data) {
           setOrderData(response.data);
         } else {
@@ -47,14 +47,12 @@ const OrderDetailComponent = () => {
       }
     };
 
-    if (user && (user.role === 'FARMER' || user.role === 'RECEPTIONIST')) {
-      fetchOrderDetails();
-    }
+    fetchOrderDetails();
   }, [location, user, forceUpdate]);
 
   const handleUpdateOrder = async (updatedData) => {
     try {
-      const response = await getOrderDetails(user, updatedData.id);
+      const response = await getOrderDetails(updatedData.id);
       setOrderData({ ...response.data });
       setForceUpdate((prev) => prev + 1); // Trigger a re-render
     } catch (error) {
@@ -67,7 +65,7 @@ const OrderDetailComponent = () => {
   }, [forceUpdate]);
 
   const handleGoBack = () => {
-    navigate('/order-manage');
+    navigate('/');
   };
 
   if (loading) {

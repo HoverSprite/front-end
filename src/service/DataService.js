@@ -33,9 +33,9 @@ export const verify = async (url) => {
     }
 }
 
-export const fetchQRCode = async (userId, orderId, content) => {
+export const fetchQRCode = async (orderId, content) => {
     try {
-        const response = await api.get(`/user/${userId}/otp/qr/${orderId}?content=${encodeURIComponent(content)}`, {
+        const response = await api.get(`/otp/qr/${orderId}?content=${encodeURIComponent(content)}`, {
             responseType: 'arraybuffer',
         });
 
@@ -50,7 +50,7 @@ export const fetchQRCode = async (userId, orderId, content) => {
 // Modified to accept user
 export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     try {
-        const response = await api.put(`/user/2/receptionist/orders/${updatedOrder.id}`, updatedOrder);
+        const response = await api.put(`/orders/${updatedOrder.id}`, updatedOrder);
         return response.data;
     } catch (error) {
         console.error('Error updating order:', error);
@@ -59,9 +59,9 @@ export const sendUpdatedOrderToAPI = async (updatedOrder) => {
 };
 
 // Modified to accept user
-export const getListOfOrders = async (user) => {
+export const getListOfOrders = async () => {
     try {
-        const response = await api.get('/user/1/farmer/orders');
+        const response = await api.get('/orders');
         return response.data;
     } catch (error) {
         console.error('Error updating order:', error);
@@ -70,18 +70,18 @@ export const getListOfOrders = async (user) => {
 
 export const getOrderDetails = async (orderId) => {
     try {
-        return await api.get(`/user/1/farmer/orders/${orderId}`);
+        return await api.get(`/orders/${orderId}`);
     } catch (error) {
         console.error('Error get detail order:', error);
     }
 }
 
-export const fetchAvailableSprayersAPI = async (user_id, order_id) => {
-    return await api.get(`/user/${user_id}/receptionist/orders/${order_id}/available-sprayers`);
+export const fetchAvailableSprayersAPI = async (order_id) => {
+    return await api.get(`/orders/${order_id}/available-sprayers`);
 };
 
-export const sendFeedbackToAPI = async (user_id, order_id, feedback) => {
-    return await api.post(`/user/${user_id}/orders/${order_id}/feedbacks/`, feedback);
+export const sendFeedbackToAPI = async (order_id, feedback) => {
+    return await api.post(`/orders/${order_id}/feedbacks/`, feedback);
 }
 
 export const verifyEmail = async (email) => {

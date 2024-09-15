@@ -5,7 +5,8 @@ import { Search, Bell, ChevronDown, Download, Edit, MessageCircle, MapPin, Calen
 import { motion } from 'framer-motion';
 import { getListOfOrders } from '../../service/DataService';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../contexts/UserContext'; // Import useUser
+import { useAuth } from '../../context/AuthContext';
+
 
 const OrderListManagement = () => {
   const [orders, setOrders] = useState([]);
@@ -13,28 +14,20 @@ const OrderListManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const ordersPerPage = 10;
   const navigate = useNavigate();
-  const { user } = useUser(); // Get user from context
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await getListOfOrders(user);
-        console.log(response);
-        // The data is already parsed, so we don't need to call response.json()
-        if (response.status === 200 && response.data) {
-          setOrders(response.data);
-        } else {
-          console.error('Unexpected response structure:', response);
-        }
+        const response = await getListOfOrders();
+        setOrders(response);
       } catch (error) {
         console.error('Error fetching orders:', error);
       }
     };
 
-    if (user && (user.role === 'FARMER' || user.role === 'RECEPTIONIST')) {
-      fetchOrders();
-    }
-  }, [user]);
+    fetchOrders();  
+  }, []);
 
   const filteredOrders = orders.filter(order =>
     Object.values(order).some(value =>

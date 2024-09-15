@@ -18,8 +18,16 @@ const getAccessToken = () => accessToken;
 const signin = async (username, password) => {
   try {
     const response = await noTokenApi.post('/auth/signin', { username, password });
-    setAccessToken(response.data.jwt);
-    return jwtDecode(response.data.jwt);
+    const accessToken = response.data.jwt;
+    setAccessToken(accessToken);
+    
+    const decodedToken = jwtDecode(accessToken);
+    const userRole = decodedToken.role;
+    
+    return {
+      ...decodedToken,
+      role: userRole
+    };
   } catch (error) {
     console.error('Signin error:', error);
     throw error;
@@ -38,9 +46,18 @@ const signout = async () => {
 
 const refreshToken = async () => {
   try {
-    const response = await noTokenApi.post('/auth/refresh', {}, { withCredentials: true });
-    setAccessToken(response.data.jwt);
-    return jwtDecode(response.data.jwt);
+    // The refresh token cookie will be sent automatically
+    const response = await noTokenApi.post('/auth/refresh');
+    
+    console.log('Token refresh successful');
+    
+    // Check if the response contains a new access token
+    if (response.data && response.data.jwt) {
+      setAccessToken(response.data.jwt);
+      return jwtDecode(response.data.jwt);
+    } else {
+      throw new Error('No new access token received');
+    }
   } catch (error) {
     console.error('Token refresh error:', error);
     setAccessToken(null);

@@ -63,18 +63,18 @@ function App() {
       <AuthProvider>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<AnimatedPage><HomePage /></AnimatedPage>} />
+          {/* <Route path="/" element={<AnimatedPage><FarmerDashboard /></AnimatedPage>} /> */}
           <Route path="/scan" element={<AnimatedPage><ScanPage /></AnimatedPage>} />
           <Route path="/qr" element={<AnimatedPage><QRCodePage /></AnimatedPage>} />
-          <Route path="/order-manage" element={<AnimatedPage><OrderManagementPage /></AnimatedPage>} />
+          <Route path="/" element={<AnimatedPage><OrderManagementPage /></AnimatedPage>} />
           <Route path="/code1" element={<AnimatedPage><Dashboard /></AnimatedPage>} />
           <Route path="/order-detail" element={<AnimatedPage><OrderDetailComponent /></AnimatedPage>} />
           <Route path="/code4" element={<AnimatedPage><ShopZenApp /></AnimatedPage>} />
           <Route path="/payment" element={<AnimatedPage><PaymentPage /></AnimatedPage>} />
           <Route path="/signin" element={<AnimatedPage><SignInPage /></AnimatedPage>} />
           <Route path="/signup" element={<AnimatedPage><SignUpPage /></AnimatedPage>} />
-          <Route path="/role-selection" element={<RoleSelectionPage />} />
-          <Route path="/user-details" element={<UserDetailsSignUpPage />} />
+          <Route path="/role-selection" element={<AnimatedPage><RoleSelectionPage /></AnimatedPage>} />
+          <Route path="/user-details" element={<AnimatedPage><UserDetailsSignUpPage /></AnimatedPage>} />
         </Routes>
       </AnimatePresence>
       </AuthProvider>

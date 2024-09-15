@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Droplet, Tractor, Cloud, Sun, TreePalmIcon, Calendar } from 'lucide-react';
-import authService from '../service/AuthService';
+import { useAuth } from '../context/AuthContext';
 
 const SignInPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { login } = useAuth();
 
   const handleSignUp = (e) => {
     e.preventDefault();
@@ -16,10 +17,10 @@ const SignInPage = () => {
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    const signinResponse = await authService.signin(email, password);
-      if (signinResponse.jwt) {
+    const signinResponse = await login(email, password);
+      if (signinResponse) {
         // Redirect to the dashboard or home page
-        navigate('/');  
+        navigate('/');
       }
   };
 

@@ -15,8 +15,8 @@ const QRCodeComponent = ({ orderId, content }) => {
     useEffect(() => {
         const fetchQR = async (userId, orderId) => {
             try {
-                const api = API_URL + `/user/${userId}/otp/verify/${orderId}`;
-                const data = await fetchQRCode(userId, orderId, api);
+                const api = API_URL + `/otp/verify/${orderId}`;
+                const data = await fetchQRCode(orderId, api);
                 setQrCodeUrl(data);
                 setLoading(false);
             } catch (err) {
