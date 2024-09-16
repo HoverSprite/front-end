@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
+import { FaFacebook } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Calendar, Droplet, Tractor, Cloud, Sun } from 'lucide-react';
@@ -34,6 +36,14 @@ const SignUpPage = () => {
       setMessage('An error occurred. Please try again.');
       setTimeout(() => setMessage(''), 1000);
     }
+  };
+
+  const handleGoogleSignUp = () => {
+    window.location.href = 'http://localhost:8080/api/oauth2/authorization/google?authType=signup&provider=google';
+  };
+
+  const handleFacebookSignUp = () => {
+    window.location.href = 'http://localhost:8080/api/oauth2/authorization/facebook?authType=signup&provider=facebook';
   };
 
   return (
@@ -122,6 +132,24 @@ const SignUpPage = () => {
               >
                 <Tractor className="inline-block w-5 h-5 mr-2" />
                 Sign up for HoverSprite
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-white text-gray-700 border border-gray-300 py-2 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300 flex items-center justify-center mt-4"
+                onClick={handleGoogleSignUp}
+              >
+                <FcGoogle className="w-5 h-5 mr-2" />
+                Sign Up with Google
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-white text-gray-700 border border-gray-300 py-2 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300 flex items-center justify-center mt-4"
+                onClick={handleFacebookSignUp}
+              >
+                <FaFacebook className="w-5 h-5 mr-2" />
+                Sign Up with Facebook
               </motion.button>
             </form>
             <p className="text-center mt-6 text-sm text-gray-600">

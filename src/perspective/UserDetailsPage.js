@@ -9,16 +9,17 @@ import { useAuth } from '../context/AuthContext';
 const UserDetailsSignUpPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { email: initialEmail, password, role } = location.state || {};
-  const { login } = useAuth();
+  const { email: initialEmail, password, role, provider } = location.state || {};
+  const { login, oauth2_signup } = useAuth();
 
   useEffect(() => {
-    if (!initialEmail || !password || !role) {
+    console.log(provider == null && !password)
+    if (!initialEmail || (!provider && !password) || !role) {
       const timer = setTimeout(() => {
         navigate('/signup');
       }, 1000);
     }
-  }, [initialEmail, password, role, navigate]);
+  }, [initialEmail, password, role, provider, navigate]);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -40,20 +41,30 @@ const UserDetailsSignUpPage = () => {
     e.preventDefault();
     const userData = {
       emailAddress: formData.emailAddress,
-      passwordHash: password,
+      passwordHash: provider == null ? password : null,
       fullName: formData.fullName,
       homeAddress: formData.homeAddress,
       role,
       phoneNumber: formData.phoneNumber,
-      expertise: role === 'SPRAYER' ? formData.expertise : null
+      expertise: role === 'SPRAYER' ? formData.expertise : null,
+      oauthProvider: provider
     };
 
     try {
-      await authService.signup(userData);
-      const signinResponse = await login(userData.emailAddress, password);
-      if (signinResponse) {
-        // Redirect to the dashboard or home page
-        navigate('/');
+      if (provider) {
+        const signinResponse = await oauth2_signup(userData);
+        if (signinResponse) {
+          // Redirect to the dashboard or home page
+          navigate('/');
+        }
+      }
+      else {
+        await authService.signup(userData);
+        const signinResponse = await login(userData.emailAddress, password);
+        if (signinResponse) {
+          // Redirect to the dashboard or home page
+          navigate('/');
+        }
       }
     } catch (error) {
       console.log("Got error: ", error);
@@ -61,7 +72,7 @@ const UserDetailsSignUpPage = () => {
     }
   };
 
-  if (!initialEmail || !password || !role) {
+  if (!initialEmail || (!provider && !password) || !role) {
     return null;
   }
 

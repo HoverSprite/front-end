@@ -80,9 +80,21 @@ const signup = async (userData) => {
   }
 };
 
+const oauth_signup = async (userData) => {
+  console.log("here")
+  try {
+    const response = await noTokenApi.post('/auth/oauth2-signup', userData);
+    return response.data;
+  } catch (error) {
+    console.error('Signup error:', error);
+    throw error;
+  }
+};
+
 export const authService = {
   signin,
   signup,
+  oauth_signup,
   signout,
   refreshToken,
   getUserInfo,

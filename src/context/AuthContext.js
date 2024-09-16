@@ -28,6 +28,12 @@ export const AuthProvider = ({ children }) => {
     return userInfo;
   };
 
+  const oauth2_signup = async (userData) => {
+    const userInfo = await authService.oauth_signup(userData);
+    setUser(userInfo);
+    return userInfo;
+  }
+
   const logout = async () => {
     await authService.signout();
     setUser(null);
@@ -36,6 +42,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
+    oauth2_signup,
     logout,
     loading,
   };

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
+import { FaFacebook } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Droplet, Tractor, Cloud, Sun, TreePalmIcon, Calendar } from 'lucide-react';
@@ -22,6 +24,14 @@ const SignInPage = () => {
         // Redirect to the dashboard or home page
         navigate('/');
       }
+  };
+
+  const handleGoogleSignIn = () => {
+    window.location.href = 'http://localhost:8080/api/oauth2/authorization/google?authType=signin&provider=google';
+  };
+
+  const handleFacebookSignIn = () => {
+    window.location.href = 'http://localhost:8080/api/oauth2/authorization/facebook?authType=signin&provider=facebook';
   };
 
   return (
@@ -109,6 +119,24 @@ const SignInPage = () => {
               >
                 <Tractor className="w-5 h-5 mr-2" />
                 Sign in to HoverSprite
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-white text-gray-700 border border-gray-300 py-2 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300 flex items-center justify-center mt-4"
+                onClick={handleGoogleSignIn}
+              >
+                <FcGoogle className="w-5 h-5 mr-2" />
+                Sign in with Google
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full bg-white text-gray-700 border border-gray-300 py-2 rounded-md text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-300 flex items-center justify-center mt-4"
+                onClick={handleFacebookSignIn}
+              >
+                <FaFacebook className="w-5 h-5 mr-2" />
+                Sign in with Facebook
               </motion.button>
             </form>
             <p className="text-center mt-6 text-sm text-gray-600">
