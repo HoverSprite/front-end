@@ -17,6 +17,11 @@ import UserDetailsSignUpPage from './perspective/UserDetailsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import SprayOrderPage from './component/SprayOrderPage';
 import Navbar from './component/NavbarComponent'; // Import Navbar
+import { LanguageProvider } from './localization/LanguageContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useTheme } from './contexts/ThemeContext';
+import { UserProvider } from './contexts/UserContext'; // Import UserProvider
+
 
 const pageVariants = {
   initial: {
@@ -78,7 +83,9 @@ function AppRoutes() {
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <>
+    <Navbar/>
+        <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/signin" element={<AnimatedPage><SignInPage /></AnimatedPage>} />
         <Route path="/signup" element={<AnimatedPage><SignUpPage /></AnimatedPage>} />
@@ -166,17 +173,35 @@ function AppRoutes() {
         />
       </Routes>
     </AnimatePresence>
+    </>
+
   );
 }
 
-function App() {
+// function App() {
+//   return (
+//     <div className="App">
+//       <AuthProvider>
+//         <AppRoutes />
+//       </AuthProvider>
+//     </div>
+//   );
+// }
+
+// export default App;
+
+const App = () => {
   return (
-    <div className="App">
+    <LanguageProvider>
+      <ThemeProvider>
       <AuthProvider>
+
         <AppRoutes />
-      </AuthProvider>
-    </div>
+        </AuthProvider>
+
+      </ThemeProvider>
+    </LanguageProvider>
   );
-}
+};
 
 export default App;

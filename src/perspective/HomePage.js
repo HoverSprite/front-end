@@ -26,7 +26,7 @@ const HomePage = () => {
       {/* Remove or adjust the existing header/nav to avoid duplication */}
       {/* Header */}
       {/* You can keep the header if it serves a different purpose, but ensure it doesn't duplicate the Navbar */}
-      <header className="bg-white shadow">
+      {/* <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
@@ -46,7 +46,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

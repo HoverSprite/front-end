@@ -12,7 +12,7 @@ const NotificationIcon = ({ userId, userRole }) => {
 
   const fetchExistingNotifications = useCallback(async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/notifications?userId=${userId}&userRole=${userRole}`);
+      const response = await axios.get(`http://localhost:8080/api/notifications`);
       const seenNotifications = JSON.parse(localStorage.getItem(`seenNotifications_${userId}`) || '[]');
       
       const updatedNotifications = response.data.map(notification => ({
@@ -32,7 +32,7 @@ const NotificationIcon = ({ userId, userRole }) => {
       console.error('Error fetching notifications:', error);
       setDebugMessages(prev => [...prev, `Error fetching notifications: ${error.message}`]);
     }
-  }, [userId, userRole]);
+  }, [userId]);
 
   const markAsSeen = useCallback((notificationId) => {
     setNotifications(prevNotifications =>
@@ -49,8 +49,10 @@ const NotificationIcon = ({ userId, userRole }) => {
       localStorage.setItem(`seenNotifications_${userId}`, JSON.stringify(seenNotifications));
     }
 
-    setHasNewNotifications(notifications.some(n => !n.seen));
-  }, [userId, notifications]);
+    setHasNewNotifications(prevNotifications => 
+      prevNotifications.some(n => n.id !== notificationId && !n.seen)
+    );
+  }, [userId]);
 
   useEffect(() => {
     fetchExistingNotifications();
@@ -121,7 +123,11 @@ const NotificationIcon = ({ userId, userRole }) => {
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
-      setHasNewNotifications(false);
+      notifications.forEach(notification => {
+        if (!notification.seen) {
+          markAsSeen(notification.id);
+        }
+      });
     }
   };
 
