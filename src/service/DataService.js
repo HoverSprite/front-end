@@ -58,6 +58,15 @@ export const sendUpdatedOrderToAPI = async (updatedOrder) => {
     }
 };
 
+export const sendCreateOrderToAPI = async (createdOrder) => {
+    try {
+        const response = await api.post(`/orders`, createdOrder);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating order:', error);
+        throw error;
+    }
+};
 // Modified to accept user
 export const getListOfOrders = async () => {
     try {

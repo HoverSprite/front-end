@@ -1,29 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { startOfWeek, addDays, format, isSameDay } from 'date-fns';
+import { startOfWeek, addDays, format } from 'date-fns';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import {
+  Grid,
+  Paper,
+  Typography,
+  Button,
+  Tooltip,
+  Box,
+  Container,
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import lunar from 'chinese-lunar'; // Library for Lunar date conversion
+import { Moon, Hemisphere } from 'lunarphase-js'; // Library for moon phases
+
+const TimeSlotButton = styled(Button)(({ theme, available }) => ({
+  padding: theme.spacing(1.5),
+  marginBottom: theme.spacing(1),
+  backgroundColor: available ? theme.palette.success.light : theme.palette.action.disabledBackground,
+  color: available ? theme.palette.success.contrastText : theme.palette.text.disabled,
+  '&:hover': {
+    backgroundColor: available ? theme.palette.success.main : theme.palette.action.disabledBackground,
+  },
+}));
+
+const DayPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(2),
+  height: '100%',
+  minHeight: '200px',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+}));
+
+const Divider = styled('hr')(({ theme }) => ({
+  border: 'none',
+  height: '4px', // Thickness of the line
+  backgroundColor: 'orange', // Orange color for distinction
+  margin: theme.spacing(2, 0), // Margin for spacing
+  width: '100%', // Full width
+}));
 
 const WeeklyCalendar = ({ onSelectTimeSlot }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [availableSlots, setAvailableSlots] = useState({});
-  const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date()));
 
   const timeSlots = ['04:00', '05:00', '06:00', '07:00', '16:00', '17:00'];
 
   useEffect(() => {
     fetchAvailableSlots();
-  }, [currentWeek]);
+  }, [selectedDate]);
 
   const fetchAvailableSlots = async () => {
     try {
       const response = await axios.get(`http://localhost:8080/api/spray-sessions/available-slots`, {
         params: {
-          startDate: format(currentWeek, 'yyyy-MM-dd'),
-          endDate: format(addDays(currentWeek, 6), 'yyyy-MM-dd'),
+          startDate: format(startOfWeek(selectedDate), 'yyyy-MM-dd'),
+          endDate: format(addDays(startOfWeek(selectedDate), 6), 'yyyy-MM-dd'),
         },
       });
-      console.log(response.data)
       setAvailableSlots(response.data);
     } catch (error) {
       console.error('Error fetching available slots:', error);
@@ -39,115 +75,103 @@ const WeeklyCalendar = ({ onSelectTimeSlot }) => {
   const handleSlotSelect = (date, time) => {
     if (isSlotAvailable(date, time)) {
       onSelectTimeSlot(date, time);
-      setSelectedDate(date);
     }
   };
 
-  const changeWeek = (direction) => {
-    setCurrentWeek(prev => addDays(prev, direction * 7));
-  };
-
   const renderWeek = () => {
+    const weekStart = startOfWeek(selectedDate);
     return Array.from({ length: 7 }).map((_, index) => {
-      const date = addDays(currentWeek, index);
+      const date = addDays(weekStart, index);
+
+      // Convert the Gregorian date to Lunar using chinese-lunar
+      const lunarDate = lunar.solarToLunar(date);
+      const lunarDay = lunarDate.day;
+      const lunarMonth = lunarDate.month;
+      const isLeapMonth = lunarDate.isLeap ? "(Leap)" : "";
+
+      // Get the lunar phase emoji using lunarphase-js
+      const moonPhaseEmoji = Moon.lunarPhaseEmoji(date, Hemisphere.NORTHERN);
+
       return (
-        <div key={index} className="flex-1 min-w-0">
-          <div className={`text-center py-2 ${isSameDay(date, selectedDate) ? 'bg-blue-100' : ''}`}>
-            <p className="text-sm font-medium text-gray-900">{format(date, 'EEE')}</p>
-            <p className="text-sm text-gray-600">{format(date, 'd')}</p>
-          </div>
-          <div className="mt-1">
-            {timeSlots.map((time, timeIndex) => {
-              const available = isSlotAvailable(date, time);
-              return (
-                <button
-                  key={timeIndex}
-                  onClick={() => handleSlotSelect(date, time)}
-                  className={`w-full py-1 text-xs ${
-                    available
-                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  } ${
-                    isSameDay(date, selectedDate) && format(selectedDate, 'HH:mm') === time
-                      ? 'ring-2 ring-blue-500'
-                      : ''
-                  }`}
-                  disabled={!available}
-                >
-                  {time}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <Grid item xs={12} sm={6} md={4} lg={1.7} key={index} sx={{ display: 'flex' }}>
+          <DayPaper elevation={3}>
+            <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', mb: 1 }}>
+              {format(date, 'EEE')}
+            </Typography>
+            <Typography variant="body1" align="center" sx={{ mb: 1 }}>
+              {format(date, 'dd/MM')} <br />
+              {`${moonPhaseEmoji} ${lunarDay}/${lunarMonth} ${isLeapMonth}`}
+            </Typography>
+            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              {renderTimeSlots(date)}
+            </Box>
+          </DayPaper>
+        </Grid>
       );
     });
   };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden"
-    >
-      <div className="flex items-center justify-between px-4 py-3 bg-green-500 text-white">
-        <button
-          onClick={() => changeWeek(-1)}
-          className="p-1 rounded-full hover:bg-green-600 transition-colors duration-200"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <h2 className="text-lg font-semibold flex items-center">
-          <Calendar size={24} className="mr-2" />
-          {format(currentWeek, 'MMMM yyyy')}
-        </h2>
-        <button
-          onClick={() => changeWeek(1)}
-          className="p-1 rounded-full hover:bg-green-600 transition-colors duration-200"
-        >
-          <ChevronRight size={24} />
-        </button>
-      </div>
-      <div className="flex">
-        {Array.from({ length: 7 }).map((_, index) => {
-          const date = addDays(currentWeek, index);
+  const renderTimeSlots = (date) => {
+    return (
+      <Box>
+        {timeSlots.slice(0, 4).map((time, index) => { // Morning Slots
+          const available = isSlotAvailable(date, time);
           return (
-            <div key={index} className="flex-1 min-w-0 border-r last:border-r-0">
-              <div className={`text-center py-2 ${isSameDay(date, selectedDate) ? 'bg-green-100' : ''}`}>
-                <p className="text-sm font-medium text-gray-900">{format(date, 'EEE')}</p>
-                <p className="text-sm text-gray-600">{format(date, 'd')}</p>
-              </div>
-              <div className="mt-1 px-1">
-                {timeSlots.map((time, timeIndex) => {
-                  const available = isSlotAvailable(date, time);
-                  return (
-                    <motion.button
-                      key={timeIndex}
-                      onClick={() => handleSlotSelect(date, time)}
-                      className={`w-full py-2 my-1 text-xs rounded-md transition-colors duration-200 ${
-                        available
-                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      } ${
-                        isSameDay(date, selectedDate) && format(selectedDate, 'HH:mm') === time
-                          ? 'ring-2 ring-green-500'
-                          : ''
-                      }`}
-                      disabled={!available}
-                      whileHover={{ scale: available ? 1.05 : 1 }}
-                      whileTap={{ scale: available ? 0.95 : 1 }}
-                    >
-                      {time}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
+            <Tooltip
+              key={index}
+              title={available ? 'Available' : 'Not Available'}
+              arrow
+              placement="top"
+            >
+              <TimeSlotButton
+                fullWidth
+                variant="contained"
+                available={available ? 1 : 0}
+                onClick={() => handleSlotSelect(date, time)}
+                disabled={!available}
+              >
+                {time}
+              </TimeSlotButton>
+            </Tooltip>
           );
         })}
-      </div>
-    </motion.div>
+        <Divider /> {/* Orange line separator */}
+        {timeSlots.slice(4).map((time, index) => { // Afternoon Slots
+          const available = isSlotAvailable(date, time);
+          return (
+            <Tooltip
+              key={index}
+              title={available ? 'Available' : 'Not Available'}
+              arrow
+              placement="top"
+            >
+              <TimeSlotButton
+                fullWidth
+                variant="contained"
+                available={available ? 1 : 0}
+                onClick={() => handleSlotSelect(date, time)}
+                disabled={!available}
+              >
+                {time}
+              </TimeSlotButton>
+            </Tooltip>
+          );
+        })}
+      </Box>
+    );
+  };
+
+  return (
+    <Container maxWidth={false} disableGutters>
+      <Paper elevation={3} sx={{ p: 3, mt: 4 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: 'center' }}>
+          Select a Time Slot
+        </Typography>
+        <Grid container spacing={2} wrap="wrap">
+          {renderWeek()}
+        </Grid>
+      </Paper>
+    </Container>
   );
 };
 

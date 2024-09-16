@@ -16,6 +16,7 @@ import RoleSelectionPage from './perspective/RoleSelectionPage';
 import UserDetailsSignUpPage from './perspective/UserDetailsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import SprayOrderPage from './component/SprayOrderPage';
+import Navbar from './component/NavbarComponent'; // Import Navbar
 
 const pageVariants = {
   initial: {

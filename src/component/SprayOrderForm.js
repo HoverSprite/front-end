@@ -8,6 +8,7 @@ import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import WeeklyCalendar from './Boop';
+import { sendCreateOrderToAPI } from '../service/DataService';
 
 const SprayOrderForm = ({ userRole, userId }) => {
   const [formData, setFormData] = useState({
@@ -140,7 +141,7 @@ const SprayOrderForm = ({ userRole, userId }) => {
         }
       };
 
-      const response = await axios.post(url, sprayOrderRequest);
+      const response = await sendCreateOrderToAPI(sprayOrderRequest);
       setSuccess('Order created successfully!');
       setFormData({
         cropType: '',
