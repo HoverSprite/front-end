@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import NotificationIcon from './NotificationIcon';
 import { useTranslation } from '../localization/UseTranslation';
@@ -14,6 +14,11 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, [user]);
 
   const handleOrderManagementClick = () => {
     navigate('/order-manage');
@@ -37,6 +42,32 @@ const Navbar = () => {
       : 'text-white hover:bg-green-500 hover:text-white'
   }`;
 
+  const renderUserNavItems = (isMobile = false) => {
+    const baseClass = isMobile ? mobileNavItemClass : navItemClass;
+    if (!user || !user.roles || user.roles.length === 0) return null;
+
+    return (
+      <>
+        {user.roles[0] === 'ROLE_SPRAYER' ? (
+          <button onClick={handleRouteClick} className={baseClass}>
+            {t('View Route')}
+          </button>
+        ) : (
+          <Link to="/create" className={baseClass}>
+            {t('Create Spray Order')}
+          </Link>
+        )}
+        <button onClick={handleOrderManagementClick} className={baseClass}>
+          {t('Order Management')}
+        </button>
+      </>
+    );
+  };
+
+  if (isLoading) {
+    return <div className="text-center py-4">Loading...</div>; // Or any loading indicator
+  }
+
   return (
     <nav className={`${isDark ? 'bg-gray-800' : 'bg-green-600'} shadow-lg transition-colors duration-200`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,23 +78,7 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-4">
-            {user && (
-              <>
-                {/* Conditionally render based on user role */}
-                {user.roles[0] === 'ROLE_SPRAYER' ? (
-                  <button onClick={handleRouteClick} className={navItemClass}>
-                    {t('View Route')}
-                  </button>
-                ) : (
-                  <Link to="/create" className={navItemClass}>
-                    {t('Create Spray Order')}
-                  </Link>
-                )}
-                <button onClick={handleOrderManagementClick} className={navItemClass}>
-                  {t('Order Management')}
-                </button>
-              </>
-            )}
+            {renderUserNavItems()}
             <NotificationIcon userId={user?.id} userRole={user?.role} />
             <button onClick={toggleLanguage} className={`${navItemClass} flex items-center`}>
               <GlobeAltIcon className="h-5 w-5 mr-1" />

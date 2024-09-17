@@ -36,11 +36,11 @@ const signin = async (username, password) => {
 
 const signout = async () => {
   try {
-    await axios.post('/auth/signout');
+    // This request should trigger the server to send a response that clears the HttpOnly cookie
+    await noTokenApi.post('/auth/signout', {}, { withCredentials: true });
+    setAccessToken(null);
   } catch (error) {
     console.error('Signout error:', error);
-  } finally {
-    setAccessToken(null);
   }
 };
 

@@ -345,7 +345,16 @@ const OrderDetails = ({ orderData, onUpdate }) => {
   };
 
   const handleChange = (field, value) => {
-    setEditedFields({ ...editedFields, [field]: value });
+    const updatedFields = { ...editedFields, [field]: value };
+    setEditedFields(updatedFields);
+    console.log(updatedFields);
+
+    if (field === 'area') {
+      const newArea = parseFloat(value) || 0;
+      const newCost = newArea * 30000;
+      setEditedFields({ ...updatedFields, cost: newCost });
+      setOrder({ ...order, area: newArea, cost: newCost });
+    }
   };
 
   const handleAutoAssignChange = (checked) => {
@@ -459,22 +468,6 @@ const OrderDetails = ({ orderData, onUpdate }) => {
     );
   };
 
-  const EditableField = ({ label, value, field, type = 'text' }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      {isEditing ? (
-        <input
-          type={type}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          value={editedFields[field] !== undefined ? editedFields[field] : value}
-          onChange={(e) => handleChange(field, e.target.value)}
-        />
-      ) : (
-        <p className="mt-1 text-sm text-gray-900">{value}</p>
-      )}
-    </div>
-  );
-
   const EditableSelect = ({ label, value, field, options }) => (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700">{label}</label>
@@ -520,13 +513,14 @@ const OrderDetails = ({ orderData, onUpdate }) => {
 
     const handleTimeChange = (newHour) => {
       const updatedDate = setHours(new Date(editedFields[dateTimeField] || dateTimeValue), parseInt(newHour));
+      console.log(updatedDate);
       handleChange(dateTimeField, updatedDate.toISOString());
     };
 
     return (
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700">{label}</label>
-        {isEditing ? (
+        {/* {isEditing ? (
           <div className="flex flex-col space-y-2">
             <DatePicker
               selected={new Date(editedFields[dateTimeField] || dateTimeValue)}
@@ -545,11 +539,15 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               ))}
             </select>
           </div>
-        ) : (
+        ) : 
+        (
           <p className="mt-1 text-sm text-gray-900">
             {format(date, "MMMM d, yyyy")} {format(date, "h:mm a")} - {format(addHours(date, 1), "h:mm a")}
           </p>
-        )}
+        )} */}
+        <p className="mt-1 text-sm text-gray-900">
+            {format(date, "MMMM d, yyyy")} {format(date, "h:mm a")} - {format(addHours(date, 1), "h:mm a")}
+          </p>
       </div>
     );
   };
@@ -606,10 +604,25 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             label="Crop Type"
             value={order.cropType}
             field="cropType"
-            options={['FRUIT', 'VEGETABLE', 'GRAIN', 'OTHER']}
+            options={['FRUIT', 'VEGETABLE', 'CEREAL']}
           />
-          <EditableField label="Area (m²)" value={order.area} field="area" type="text" />
-          <EditableField label="Cost (VND)" value={order.cost.toLocaleString()} field="cost" type="text" />
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Area (m²)</label>
+            {isEditing ? (
+              <input
+                type="text"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                value={editedFields.area !== undefined ? editedFields.area : order.area}
+                onChange={(e) => handleChange('area', e.target.value)}
+              />
+            ) : (
+              <p className="mt-1 text-sm text-gray-900">{order.area}</p>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Cost (VND)</label>
+            <p className="mt-1 text-sm text-gray-900">{order.cost.toLocaleString()}</p>
+          </div>
           <EditableDateTime
             label="Spray Session"
             dateTimeValue={order.spraySession.date + 'T' + order.spraySession.startTime}

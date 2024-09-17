@@ -13,9 +13,14 @@ const NotificationIcon = () => {
   const [allSeen, setAllSeen] = useState(false); // Track if all notifications are seen/unseen
   const { user } = useAuth();
   const dropdownRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch notifications from the server
   const fetchExistingNotifications = useCallback(async () => {
+    if (!user) {
+      setIsLoading(true);
+      return;
+    }
     try {
       const response = await axios.get(`http://localhost:8080/api/notifications`);
       const seenNotifications = JSON.parse(localStorage.getItem(`seenNotifications_${user.sub}`) || '[]');
@@ -29,6 +34,8 @@ const NotificationIcon = () => {
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setDebugMessages(prev => [...prev, `Error fetching notifications: ${error.message}`]);
+    } finally {
+      setIsLoading(false);
     }
   }, [user]);
 
@@ -69,6 +76,7 @@ const NotificationIcon = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
     fetchExistingNotifications();
 
     const client = new Client({
@@ -146,6 +154,10 @@ const NotificationIcon = () => {
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
+
+  if (isLoading || !user) {
+    return null; // or return a loading indicator
+  }
 
   const hasUnseenNotifications = notifications.some(notification => !notification.seen);
 
