@@ -5,6 +5,8 @@ import 'leaflet-routing-machine';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
+import { getAssignedOrdersWithCoordinates } from '../service/DataService'; // The function you've provided
+import { useAuth } from '../context/AuthContext';  // Assuming you have AuthContext to get the user
 
 const generateColors = (count) => {
   const hueStep = 360 / count;
@@ -28,6 +30,7 @@ const MapComponent = () => {
   const [currentPosition, setCurrentPosition] = useState(null);
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
+  const { user } = useAuth(); // Get the user from AuthContext
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -46,12 +49,15 @@ const MapComponent = () => {
       setError('Geolocation is not supported by this browser.');
     }
 
-    // Fetch orders from API
-    fetch('http://localhost:8080/api/user/3/sprayer/orders')
-      .then(response => response.json())
-      .then(data => setOrders(data))
-      .catch(err => setError('Failed to fetch orders'));
-  }, []);
+    // Fetch assigned orders with coordinates for the logged-in sprayer
+    if (user) {
+      getAssignedOrdersWithCoordinates()
+        .then(response => setOrders(response))  // Assuming the function returns the data directly
+        .catch(err => setError('Failed to fetch assigned orders with coordinates'));
+    }
+  }, [user]);
+
+  console.log(orders);
 
   return (
     <MapContainer

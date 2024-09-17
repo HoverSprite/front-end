@@ -19,6 +19,7 @@ const OrderListManagement = () => {
       try {
         const response = await getListOfOrders();
         setOrders(response);
+        console.log(response);
       } catch (error) {
         console.error('Error fetching orders:', error);
       }

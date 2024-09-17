@@ -1,3 +1,5 @@
+// src/perspective/HomePage.js
+
 import React from 'react';
 import { Calendar, MapPin, Droplet, ArrowRight, Leaf, Shield, Crop, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -21,8 +23,10 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-        <header className="bg-white shadow">
+      {/* Remove or adjust the existing header/nav to avoid duplication */}
+      {/* Header */}
+      {/* You can keep the header if it serves a different purpose, but ensure it doesn't duplicate the Navbar */}
+      {/* <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
@@ -34,12 +38,6 @@ const HomePage = () => {
                 <p className="text-sm text-gray-600">Efficient Crop Management</p>
               </div>
             </div>
-            <nav className="hidden md:flex space-x-8">
-              <a href="#" className="text-gray-600 hover:text-gray-900">Home</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">Services</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">About Us</a>
-              <a href="#" className="text-gray-600 hover:text-gray-900">Contact</a>
-            </nav>
             <div className="flex items-center space-x-4">
               <button className="text-gray-500 hover:text-gray-700">
                 <Bell size={20} />
@@ -48,7 +46,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
