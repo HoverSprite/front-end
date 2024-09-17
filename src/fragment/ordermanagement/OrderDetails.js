@@ -608,8 +608,32 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             field="cropType"
             options={['FRUIT', 'VEGETABLE', 'GRAIN', 'OTHER']}
           />
-          <EditableField label="Area (m²)" value={order.area} field="area" type="text" />
-          <EditableField label="Cost (VND)" value={order.cost.toLocaleString()} field="cost" type="text" />
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Area (m²)</label>
+            {isEditing ? (
+              <input
+                type="text"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                value={editedFields.area !== undefined ? editedFields.area : order.area}
+                onChange={(e) => handleChange('area', e.target.value)}
+              />
+            ) : (
+              <p className="mt-1 text-sm text-gray-900">{order.area}</p>
+            )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Cost (VND)</label>
+            {isEditing ? (
+              <input
+                type="text"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                value={editedFields.cost !== undefined ? editedFields.cost : order.cost.toLocaleString()}
+                onChange={(e) => handleChange('cost', e.target.value)}
+              />
+            ) : (
+              <p className="mt-1 text-sm text-gray-900">{order.cost.toLocaleString()}</p>
+            )}
+          </div>
           <EditableDateTime
             label="Spray Session"
             dateTimeValue={order.spraySession.date + 'T' + order.spraySession.startTime}

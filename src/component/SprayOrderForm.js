@@ -11,6 +11,9 @@ import { useAuth } from '../context/AuthContext';
 
 const SprayOrderForm = () => {
   const { user } = useAuth();
+  const [isUserLoaded, setIsUserLoaded] = useState(false);
+  const [userRole, setUserRole] = useState('');
+const [userId, setUserId] = useState('');
   const [formData, setFormData] = useState({
     cropType: '',
     area: '',
@@ -27,8 +30,14 @@ const SprayOrderForm = () => {
   const [loading, setLoading] = useState(false);
   const baseURL = 'http://localhost:8080/api';
 
-  const userRole = user.roles[0].includes('ROLE_RECEPTIONIST') ? 'RECEPTIONIST' : 'FARMER';
-  const userId = user.sub;
+
+  useEffect(() => {
+    if (user) {
+      setUserRole(user.roles && user.roles[0] && user.roles[0].includes('ROLE_RECEPTIONIST') ? 'RECEPTIONIST' : 'FARMER');
+      setUserId(user.sub);
+      setIsUserLoaded(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     const cost = parseFloat(formData.area) * 30000;
@@ -147,6 +156,14 @@ const SprayOrderForm = () => {
       setLoading(false);
     }
   };
+
+  if (!isUserLoaded) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
