@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { startOfWeek, addDays, format } from 'date-fns';
+import { startOfWeek, addDays, format, isValid } from 'date-fns';
 import axios from 'axios';
 import {
   Grid,
@@ -42,22 +42,24 @@ const Divider = styled('hr')(({ theme }) => ({
   width: '100%', // Full width
 }));
 
-const WeeklyCalendar = ({ onSelectTimeSlot }) => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   const [availableSlots, setAvailableSlots] = useState({});
 
   const timeSlots = ['04:00', '05:00', '06:00', '07:00', '16:00', '17:00'];
 
   useEffect(() => {
-    fetchAvailableSlots();
+    if (selectedDate && isValid(selectedDate)) {
+      fetchAvailableSlots(selectedDate);
+    }
   }, [selectedDate]);
 
-  const fetchAvailableSlots = async () => {
+  const fetchAvailableSlots = async (date) => {
     try {
+      const startOfWeekDate = startOfWeek(date);
       const response = await axios.get(`http://localhost:8080/api/spray-sessions/available-slots`, {
         params: {
-          startDate: format(startOfWeek(selectedDate), 'yyyy-MM-dd'),
-          endDate: format(addDays(startOfWeek(selectedDate), 6), 'yyyy-MM-dd'),
+          startDate: format(startOfWeekDate, 'yyyy-MM-dd'),
+          endDate: format(addDays(startOfWeekDate, 6), 'yyyy-MM-dd'),
         },
       });
       setAvailableSlots(response.data);
@@ -79,6 +81,9 @@ const WeeklyCalendar = ({ onSelectTimeSlot }) => {
   };
 
   const renderWeek = () => {
+    if (!selectedDate || !isValid(selectedDate)) {
+      return null; // Avoid rendering if selectedDate is invalid
+    }
     const weekStart = startOfWeek(selectedDate);
     return Array.from({ length: 7 }).map((_, index) => {
       const date = addDays(weekStart, index);

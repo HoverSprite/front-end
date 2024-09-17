@@ -21,6 +21,7 @@ import { LanguageProvider } from './localization/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useTheme } from './contexts/ThemeContext';
 import { UserProvider } from './contexts/UserContext'; // Import UserProvider
+import MapComponent from './component/MapComponent';
 
 
 const pageVariants = {
@@ -171,6 +172,13 @@ function AppRoutes() {
               <AnimatedPage><UserDetailsSignUpPage /></AnimatedPage>
           }
         />
+        <Route
+          path="/route"
+          element={
+              <AnimatedPage><MapComponent /></AnimatedPage>
+          }
+        />
+
       </Routes>
     </AnimatePresence>
     </>

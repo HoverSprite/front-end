@@ -85,6 +85,22 @@ export const getOrderDetails = async (orderId) => {
     }
 }
 
+/**
+ * Fetch user ID and role by email
+ * @param {string} email - The email address of the user to look up.
+ * @returns {Promise<Object>} - The user ID and role.
+ */
+export const getUserIdByEmail = async (email) => {
+    try {
+        const response = await api.get(`/user-id?email=${encodeURIComponent(email)}`);
+        console.log('User ID and Role:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user ID by email:', error);
+        throw error;
+    }
+}
+
 export const fetchAvailableSprayersAPI = async (order_id) => {
     return await api.get(`/orders/${order_id}/available-sprayers`);
 };
@@ -96,3 +112,25 @@ export const sendFeedbackToAPI = async (order_id, feedback) => {
 export const verifyEmail = async (email) => {
     return await no_token_api_data.get(`/auth/email?email=${email}`);
 }
+
+// Modified to fetch assigned orders with coordinates for sprayer
+export const getAssignedOrdersWithCoordinates = async () => {
+    try {
+        const response = await api.get('/orders/assigned-orders');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching assigned orders with coordinates:', error);
+        throw error;
+    }
+};
+
+// Modified to fetch all orders for the current sprayer
+export const viewAssignedOrders = async () => {
+    try {
+        const response = await api.get('/orders/orders');  // Uses the new "/orders/orders" endpoint
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching assigned orders:', error);
+        throw error;
+    }
+};
