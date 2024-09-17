@@ -8,13 +8,14 @@ import axios from 'axios';
 import WeeklyCalendar from './Boop'; // Your custom WeeklyCalendar component
 import { sendCreateOrderToAPI } from '../service/DataService';
 import { useAuth } from '../context/AuthContext';
+import lunar from 'chinese-lunar'; // Library for Lunar date conversion
 
 const SprayOrderForm = () => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     cropType: '',
     area: '',
-    dateTime: null,
+    dateTime: new Date(),
     location: '',
     farmerId: '',
   });
@@ -49,11 +50,24 @@ const SprayOrderForm = () => {
 
   const handleTimeSlotSelect = (date, time) => {
     const selectedDateTime = new Date(`${format(date, 'yyyy-MM-dd')}T${time}`);
-    setFormData((prevData) => ({
-      ...prevData,
-      dateTime: selectedDateTime,
-    }));
-  };
+    // Convert the selected Gregorian date to Lunar using the chinese-lunar library
+  const lunarDate = lunar.solarToLunar(date);
+  const lunarDay = lunarDate.day;
+  const lunarMonth = lunarDate.month;
+  const lunarYear = lunarDate.year;
+  const isLeapMonth = lunarDate.isLeap;
+
+  setFormData((prevData) => ({
+    ...prevData,
+    dateTime: selectedDateTime,
+    lunarDate: {
+      year: lunarYear,
+      month: lunarMonth,
+      day: lunarDay,
+      isLeapMonth,
+    },
+  }));
+};
 
   const handleFarmerLookup = async () => {
     setError('');
@@ -100,7 +114,7 @@ const SprayOrderForm = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
+  
     let farmerInfo;
     if (userRole === 'RECEPTIONIST') {
       farmerInfo = {
@@ -109,13 +123,19 @@ const SprayOrderForm = () => {
         fullName: farmerDetails?.fullName || '',
       };
     }
-
+  
     try {
       const sprayOrderRequest = {
         farmer: farmerInfo,
         cropType: formData.cropType,
         area: parseFloat(formData.area),
         dateTime: formData.dateTime,
+        lunarDate: {
+          year: formData.lunarDate.year,
+          month: formData.lunarDate.month,
+          day: formData.lunarDate.day,
+          isLeapMonth: formData.lunarDate.isLeapMonth,
+        },
         cost: totalCost,
         location: formData.location || farmerDetails?.homeAddress,
         spraySession: {
@@ -127,7 +147,7 @@ const SprayOrderForm = () => {
           )
         }
       };
-
+  
       const response = await sendCreateOrderToAPI(sprayOrderRequest);
       setSuccess('Order created successfully!');
       setFormData({
@@ -147,6 +167,7 @@ const SprayOrderForm = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <motion.div

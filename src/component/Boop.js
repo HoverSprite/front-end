@@ -46,12 +46,12 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   const [availableSlots, setAvailableSlots] = useState({});
 
   const timeSlots = ['04:00', '05:00', '06:00', '07:00', '16:00', '17:00'];
-
+  const currentDate = selectedDate || new Date();
   useEffect(() => {
-    if (selectedDate && isValid(selectedDate)) {
-      fetchAvailableSlots(selectedDate);
+    if (isValid(currentDate)) {
+      fetchAvailableSlots(currentDate);
     }
-  }, [selectedDate]);
+  }, [currentDate]);
 
   const fetchAvailableSlots = async (date) => {
     try {
