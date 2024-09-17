@@ -459,22 +459,6 @@ const OrderDetails = ({ orderData, onUpdate }) => {
     );
   };
 
-  const EditableField = ({ label, value, field, type = 'text' }) => (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      {isEditing ? (
-        <input
-          type={type}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          value={editedFields[field] !== undefined ? editedFields[field] : value}
-          onChange={(e) => handleChange(field, e.target.value)}
-        />
-      ) : (
-        <p className="mt-1 text-sm text-gray-900">{value}</p>
-      )}
-    </div>
-  );
-
   const EditableSelect = ({ label, value, field, options }) => (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700">{label}</label>
@@ -606,7 +590,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             label="Crop Type"
             value={order.cropType}
             field="cropType"
-            options={['FRUIT', 'VEGETABLE', 'GRAIN', 'OTHER']}
+            options={['FRUIT', 'VEGETABLE', 'CEREAL']}
           />
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Area (m²)</label>
