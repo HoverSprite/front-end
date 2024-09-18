@@ -6,6 +6,8 @@ import { useLanguage } from '../localization/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { MoonIcon, SunIcon, Bars3Icon, XMarkIcon, GlobeAltIcon, UserCircleIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
+import { getUserName } from '../service/DataService'
+
 
 const Navbar = () => {
   const { t } = useTranslation();
@@ -15,10 +17,25 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userName, setUserName] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setIsLoading(false);
+    if (user) {
+      fetchUserName();
+    }
   }, [user]);
+
+  const fetchUserName = async () => {
+    try {
+        const name = await getUserName();  // Use the imported function here
+        setUserName(name);
+    } catch (error) {
+        setError('Unable to fetch user name');
+        console.error('Error fetching user name:', error);
+    }
+  };
 
   const handleOrderManagementClick = () => {
     navigate('/order-manage');
@@ -64,6 +81,16 @@ const Navbar = () => {
     );
   };
 
+  const renderWelcomeMessage = () => {
+    if (error) {
+      return <span className="text-red-500">{error}</span>;
+    }
+    if (userName) {
+      return <span className="text-white">{t('Welcome')}, {userName}!</span>;
+    }
+    return null;
+  };
+
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>; // Or any loading indicator
   }
@@ -76,6 +103,7 @@ const Navbar = () => {
             <Link to="/" className="flex-shrink-0 flex items-center">
               <span className="text-2xl font-bold text-white mr-2">HoverSprite</span>
             </Link>
+            {renderWelcomeMessage()}
           </div>
           <div className="hidden md:flex items-center space-x-4">
             {renderUserNavItems()}
@@ -121,6 +149,7 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1">
+            {renderWelcomeMessage()}
             {user && (
               <>
                 {user.roles[0] === 'ROLE_SPRAYER' ? (

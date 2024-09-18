@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, DollarSign, Users, Plus, X, Phone, Check, Leaf } from 'lucide-react';
-import { format, isFuture, setHours, setMinutes } from 'date-fns';import DatePicker from 'react-datepicker';
+import { format, isFuture, isToday } from 'date-fns';
+import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
-import WeeklyCalendar from './Boop'; // Your custom WeeklyCalendar component
+import WeeklyCalendar from './Boop'; // Updated import
 import { sendCreateOrderToAPI } from '../service/DataService';
 import { useAuth } from '../context/AuthContext';
 import lunar from 'chinese-lunar'; // Library for Lunar date conversion
@@ -31,15 +32,11 @@ const SprayOrderForm = () => {
   const [loading, setLoading] = useState(false);
   const baseURL = 'http://localhost:8080/api';
 
-  
-// Define the allowed time slots
-const timeSlots = ['04:00', '05:00', '06:00', '07:00', '16:00', '17:00'];
-
-// Create a Set for quick lookup
-const allowedTimesSet = new Set(timeSlots);
-
   // New state for form errors
   const [formErrors, setFormErrors] = useState({});
+
+  // State for available times
+  const [availableTimes, setAvailableTimes] = useState({}); // Changed to an object
 
   useEffect(() => {
     if (user) {
@@ -249,8 +246,21 @@ const allowedTimesSet = new Set(timeSlots);
   };
 
   const filterTime = (time) => {
-    const timeString = format(time, 'HH:mm');
-    return allowedTimesSet.has(timeString);
+    const selectedDate = formData.dateTime || new Date();
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const timeStr = format(time, 'HH:mm:ss');
+
+    const slotDateTime = new Date(`${dateStr}T${timeStr}`);
+
+    if (slotDateTime < new Date()) {
+      return false;
+    }
+
+    if (availableTimes[dateStr]) {
+      return availableTimes[dateStr].includes(timeStr);
+    }
+
+    return false;
   };
 
   if (!isUserLoaded) {
@@ -482,40 +492,41 @@ const allowedTimesSet = new Set(timeSlots);
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">
-              Spray Session
-            </h3>
-            <WeeklyCalendar
-              onSelectTimeSlot={handleTimeSlotSelect}
-              selectedDate={formData.dateTime}
-            />
-            <div className="mt-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        Selected Date and Time
-      </label>
-      <DatePicker
-        selected={formData.dateTime instanceof Date ? formData.dateTime : null}
-        onChange={handleDatePickerChange}
-        showTimeSelect
-        dateFormat="dd/MM/yyyy HH:mm"
-        filterTime={filterTime} // Use filterTime to restrict selectable times
-        customInput={
-          <input
-            className={`w-full pl-10 pr-3 py-2 bg-white border ${
-              formErrors.dateTime ? 'border-red-500' : 'border-gray-300'
-            } rounded-md shadow-sm`}
-            placeholder="DD/MM/YYYY HH:mm"
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+            Spray Session
+          </h3>
+          <WeeklyCalendar
+            onSelectTimeSlot={handleTimeSlotSelect}
+            selectedDate={formData.dateTime}
+            setAvailableTimes={setAvailableTimes} // Pass the setter
           />
-        }
-      />
-      {formErrors.dateTime && (
-        <p className="text-red-500 text-sm mt-1">
-          {formErrors.dateTime}
-        </p>
-      )}
-    </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Selected Date and Time
+            </label>
+            <DatePicker
+              selected={formData.dateTime instanceof Date ? formData.dateTime : null}
+              onChange={handleDatePickerChange}
+              showTimeSelect
+              dateFormat="dd/MM/yyyy HH:mm"
+              filterTime={filterTime} // Use filterTime to restrict selectable times
+              customInput={
+                <input
+                  className={`w-full pl-10 pr-3 py-2 bg-white border ${
+                    formErrors.dateTime ? 'border-red-500' : 'border-gray-300'
+                  } rounded-md shadow-sm`}
+                  placeholder="DD/MM/YYYY HH:mm"
+                />
+              }
+            />
+            {formErrors.dateTime && (
+              <p className="text-red-500 text-sm mt-1">
+                {formErrors.dateTime}
+              </p>
+            )}
           </div>
         </div>
+      </div>
 
         <div className="mt-6">
           <h3 className="text-lg font-semibold mb-4 text-gray-700">
