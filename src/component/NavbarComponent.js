@@ -124,7 +124,7 @@ const Navbar = () => {
                 {t('Logout')}
               </button>
             ) : (
-              <Link to="/" className={`${navItemClass} bg-blue-500 hover:bg-blue-600 text-white`}>
+              <Link to="/signin" className={`${navItemClass} bg-blue-500 hover:bg-blue-600 text-white`}>
                 {t('Login')}
               </Link>
             )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { startOfWeek, addDays, format, isValid } from 'date-fns';
 import axios from 'axios';
 import {
@@ -52,11 +52,15 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate, setAvailableTimes }) =
   const [availableSlots, setAvailableSlots] = useState({});
 
   const timeSlots = ['04:00', '05:00', '06:00', '07:00', '16:00', '17:00'];
-  const currentDate = selectedDate && isValid(selectedDate) ? selectedDate : new Date();
+  const currentDate = useMemo(() => {
+    return selectedDate && isValid(selectedDate) ? selectedDate : new Date();
+  }, [selectedDate]);
 
   useEffect(() => {
+    console.log("loop")
     fetchAvailableSlots(currentDate);
   }, [currentDate]);
+  
 
   const fetchAvailableSlots = async (date) => {
     try {
