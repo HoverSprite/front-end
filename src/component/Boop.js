@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { startOfWeek, addDays, format, isValid } from 'date-fns';
 import axios from 'axios';
 import {
@@ -17,10 +17,16 @@ import { Moon, Hemisphere } from 'lunarphase-js'; // Library for moon phases
 const TimeSlotButton = styled(Button)(({ theme, available }) => ({
   padding: theme.spacing(1.5),
   marginBottom: theme.spacing(1),
-  backgroundColor: available ? theme.palette.success.light : theme.palette.action.disabledBackground,
-  color: available ? theme.palette.success.contrastText : theme.palette.text.disabled,
+  backgroundColor: available
+    ? theme.palette.success.light
+    : theme.palette.action.disabledBackground,
+  color: available
+    ? theme.palette.success.contrastText
+    : theme.palette.text.disabled,
   '&:hover': {
-    backgroundColor: available ? theme.palette.success.main : theme.palette.action.disabledBackground,
+    backgroundColor: available
+      ? theme.palette.success.main
+      : theme.palette.action.disabledBackground,
   },
 }));
 
@@ -42,27 +48,35 @@ const Divider = styled('hr')(({ theme }) => ({
   width: '100%', // Full width
 }));
 
-const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
+const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate, setAvailableTimes }) => {
   const [availableSlots, setAvailableSlots] = useState({});
 
   const timeSlots = ['04:00', '05:00', '06:00', '07:00', '16:00', '17:00'];
-  const currentDate = selectedDate || new Date();
+  const currentDate = useMemo(() => {
+    return selectedDate && isValid(selectedDate) ? selectedDate : new Date();
+  }, [selectedDate]);
+
   useEffect(() => {
-    if (isValid(currentDate)) {
-      fetchAvailableSlots(currentDate);
-    }
+    console.log("loop")
+    fetchAvailableSlots(currentDate);
   }, [currentDate]);
+  
 
   const fetchAvailableSlots = async (date) => {
     try {
       const startOfWeekDate = startOfWeek(date);
-      const response = await axios.get(`http://localhost:8080/api/spray-sessions/available-slots`, {
-        params: {
-          startDate: format(startOfWeekDate, 'yyyy-MM-dd'),
-          endDate: format(addDays(startOfWeekDate, 6), 'yyyy-MM-dd'),
-        },
-      });
+      const endOfWeekDate = addDays(startOfWeekDate, 6);
+      const response = await axios.get(
+        `http://localhost:8080/api/spray-sessions/available-slots`,
+        {
+          params: {
+            startDate: format(startOfWeekDate, 'yyyy-MM-dd'),
+            endDate: format(endOfWeekDate, 'yyyy-MM-dd'),
+          },
+        }
+      );
       setAvailableSlots(response.data);
+      setAvailableTimes(response.data); // Pass the data to parent
     } catch (error) {
       console.error('Error fetching available slots:', error);
     }
@@ -71,7 +85,19 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   const isSlotAvailable = (date, time) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const formattedTime = `${time}:00`;
-    return availableSlots[dateStr] && availableSlots[dateStr].includes(formattedTime);
+    const slotDateTime = new Date(`${dateStr}T${formattedTime}`);
+
+    // Check if the slot time is in the future
+    const currentTime = new Date();
+
+    if (slotDateTime < currentTime) {
+      return false;
+    }
+
+    return (
+      availableSlots[dateStr] &&
+      availableSlots[dateStr].includes(formattedTime)
+    );
   };
 
   const handleSlotSelect = (date, time) => {
@@ -81,10 +107,7 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   };
 
   const renderWeek = () => {
-    if (!selectedDate || !isValid(selectedDate)) {
-      return null; // Avoid rendering if selectedDate is invalid
-    }
-    const weekStart = startOfWeek(selectedDate);
+    const weekStart = startOfWeek(currentDate);
     return Array.from({ length: 7 }).map((_, index) => {
       const date = addDays(weekStart, index);
 
@@ -92,22 +115,41 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
       const lunarDate = lunar.solarToLunar(date);
       const lunarDay = lunarDate.day;
       const lunarMonth = lunarDate.month;
-      const isLeapMonth = lunarDate.isLeap ? "(Leap)" : "";
+      const isLeapMonth = lunarDate.isLeap ? '(Leap)' : '';
 
       // Get the lunar phase emoji using lunarphase-js
       const moonPhaseEmoji = Moon.lunarPhaseEmoji(date, Hemisphere.NORTHERN);
 
       return (
-        <Grid item xs={12} sm={6} md={4} lg={1.7} key={index} sx={{ display: 'flex' }}>
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          md={4}
+          lg={1.7}
+          key={index}
+          sx={{ display: 'flex' }}
+        >
           <DayPaper elevation={3}>
-            <Typography variant="h6" align="center" sx={{ fontWeight: 'bold', mb: 1 }}>
+            <Typography
+              variant="h6"
+              align="center"
+              sx={{ fontWeight: 'bold', mb: 1 }}
+            >
               {format(date, 'EEE')}
             </Typography>
             <Typography variant="body1" align="center" sx={{ mb: 1 }}>
               {format(date, 'dd/MM')} <br />
               {`${moonPhaseEmoji} ${lunarDay}/${lunarMonth} ${isLeapMonth}`}
             </Typography>
-            <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
               {renderTimeSlots(date)}
             </Box>
           </DayPaper>
@@ -119,7 +161,8 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   const renderTimeSlots = (date) => {
     return (
       <Box>
-        {timeSlots.slice(0, 4).map((time, index) => { // Morning Slots
+        {timeSlots.slice(0, 4).map((time, index) => {
+          // Morning Slots
           const available = isSlotAvailable(date, time);
           return (
             <Tooltip
@@ -141,7 +184,8 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
           );
         })}
         <Divider /> {/* Orange line separator */}
-        {timeSlots.slice(4).map((time, index) => { // Afternoon Slots
+        {timeSlots.slice(4).map((time, index) => {
+          // Afternoon Slots
           const available = isSlotAvailable(date, time);
           return (
             <Tooltip
@@ -169,9 +213,6 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   return (
     <Container maxWidth={false} disableGutters>
       <Paper elevation={3} sx={{ p: 3, mt: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: 'center' }}>
-          Select a Time Slot
-        </Typography>
         <Grid container spacing={2} wrap="wrap">
           {renderWeek()}
         </Grid>

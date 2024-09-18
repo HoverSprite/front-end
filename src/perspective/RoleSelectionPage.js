@@ -98,7 +98,7 @@ const RoleSelectionPage = () => {
       icon: UserCircle,
       color: 'bg-blue-500',
       description: 'Handle bookings, manage customer inquiries, and coordinate spraying schedules.',
-      isBlocked: false,
+      isBlocked: true,
     },
     {
       title: 'Sprayer',
@@ -106,7 +106,7 @@ const RoleSelectionPage = () => {
       icon: Droplets,
       color: 'bg-teal-500',
       description: 'Perform spraying operations, maintain equipment, and update job statuses.',
-      isBlocked: false,
+      isBlocked: true,
     },
   ];
 
