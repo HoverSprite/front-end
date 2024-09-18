@@ -42,27 +42,30 @@ const Divider = styled('hr')(({ theme }) => ({
   width: '100%', // Full width
 }));
 
-const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
+const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate, setAvailableTimes }) => {
   const [availableSlots, setAvailableSlots] = useState({});
 
   const timeSlots = ['04:00', '05:00', '06:00', '07:00', '16:00', '17:00'];
-  const currentDate = selectedDate || new Date();
+  const currentDate = selectedDate && isValid(selectedDate) ? selectedDate : new Date();
+
   useEffect(() => {
-    if (isValid(currentDate)) {
-      fetchAvailableSlots(currentDate);
-    }
+    fetchAvailableSlots(currentDate);
   }, [currentDate]);
 
   const fetchAvailableSlots = async (date) => {
     try {
       const startOfWeekDate = startOfWeek(date);
+      const endOfWeekDate = addDays(startOfWeekDate, 6);
       const response = await axios.get(`http://localhost:8080/api/spray-sessions/available-slots`, {
         params: {
           startDate: format(startOfWeekDate, 'yyyy-MM-dd'),
-          endDate: format(addDays(startOfWeekDate, 6), 'yyyy-MM-dd'),
+          endDate: format(endOfWeekDate, 'yyyy-MM-dd'),
         },
       });
       setAvailableSlots(response.data);
+      // Flatten the available slots into a single list for the entire week and pass it to the parent
+      const availableTimesForPicker = Object.values(response.data).flat();
+      setAvailableTimes(new Set(availableTimesForPicker.map(time => time.slice(0, 5)))); // Only HH:mm format
     } catch (error) {
       console.error('Error fetching available slots:', error);
     }
@@ -81,10 +84,7 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   };
 
   const renderWeek = () => {
-    if (!selectedDate || !isValid(selectedDate)) {
-      return null; // Avoid rendering if selectedDate is invalid
-    }
-    const weekStart = startOfWeek(selectedDate);
+    const weekStart = startOfWeek(currentDate);
     return Array.from({ length: 7 }).map((_, index) => {
       const date = addDays(weekStart, index);
 
@@ -169,9 +169,6 @@ const WeeklyCalendar = ({ onSelectTimeSlot, selectedDate }) => {
   return (
     <Container maxWidth={false} disableGutters>
       <Paper elevation={3} sx={{ p: 3, mt: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: 'center' }}>
-          Select a Time Slot
-        </Typography>
         <Grid container spacing={2} wrap="wrap">
           {renderWeek()}
         </Grid>
