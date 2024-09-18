@@ -138,4 +138,16 @@ export const viewAssignedOrders = async () => {
         console.error('Error fetching assigned orders:', error);
         throw error;
     }
+    
 };
+
+
+export const getUserName = async () => {
+    try {
+        const response = await api.get('/userName');  
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user name:', error);
+        throw error;
+    }
+}
