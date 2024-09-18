@@ -9,6 +9,7 @@ This is the frontend for a session booking, order management, and sprayer assign
 
 1. **Installation**:
    - Clone the repository to your local machine.
+   - Install node js.
    - Run `npm install` to install the necessary dependencies.
    
 2. **Start the application**:
