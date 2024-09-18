@@ -95,7 +95,7 @@ const OrderListManagement = () => {
         </div>
         <div className="flex items-center">
           <MapPin size={14} className="text-blue-600 mr-2" />
-          <span className="text-sm">{order.area} m²</span>
+          <span className="text-sm">{order.area} decare</span>
         </div>
         <div className="flex items-center">
           <DollarSign size={14} className="text-yellow-600 mr-2" />
@@ -207,7 +207,7 @@ const OrderListManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(order.dateTime).toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.farmer}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.cropType}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.area} m²</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.area} decare</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.cost.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={order.status} />

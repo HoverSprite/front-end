@@ -454,7 +454,7 @@ const SprayOrderForm = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Area (m²)
+                  Area (decare)
                 </label>
                 <input
                   type="number"

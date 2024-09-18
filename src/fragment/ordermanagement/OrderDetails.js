@@ -639,7 +639,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             options={['FRUIT', 'VEGETABLE', 'CEREAL']}
           />
           <div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700">Area (m²)</label>
+  <label className="block text-sm font-medium text-gray-700">Area (decare)</label>
   {isEditing ? (
     <>
       <input
@@ -650,7 +650,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
             : ''
         }`}
-        placeholder="Enter a positive area in m²"
+        placeholder="Enter a positive area in decare"
         value={editedFields.area !== undefined ? editedFields.area : order.area}
         onChange={(e) => handleChange('area', e.target.value)}
       />
