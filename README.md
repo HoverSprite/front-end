@@ -1,70 +1,71 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Hoversprite - Frontend
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+This is the frontend for a session booking, order management, and sprayer assignment system designed for use in agriculture. The system allows three types of users—Farmers, Receptionists, and Sprayers—to interact and manage their respective tasks, from placing orders to completing payments. Below is a step-by-step guide for setting up and navigating the system.
 
-### `npm start`
+## Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+1. **Installation**:
+   - Clone the repository to your local machine.
+   - Run `npm install` to install the necessary dependencies.
+   
+2. **Start the application**:
+   - Run `npm start`.
+   - Go to `localhost:3000` to access the app.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## User Flow
 
-### `npm test`
+### 1. **Book a Session**
+   - Navigate to `localhost:3000`.
+   - Click on **Book a Session**.
+   - You will be redirected to the **Sign In** page. If you're a new user, click on **Sign Up** at the bottom of the page.
+   - **Sign Up**: Enter a valid email (ending in `.com` or `.vn`, otherwise suggestions will be shown), and a password that meets the criteria: 
+     - At least 8 characters long.
+     - Contains at least 1 uppercase letter, 1 special character, 1 number, and letters.
+   - After signing up, fill in your name, phone number, home address, and email address.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. **Create an Order (Farmer)**
+   - Once registered, click on **Book a Session** to navigate to the **Create Order** page.
+   - Select your crop type, area (in square meters), and the preferred time and date for the service.
+   - Place your order, and you will receive a confirmation notification that your order has been placed.
+   - You can also view and modify your orders on the **Order Management** page. Use the **View (eye)** icon to see details, make a payment, or check the QR code for payment.
 
-### `npm run build`
+### 3. **Order Management (Farmer)**
+   - Navigate to the **Order Management** page to view all your orders.
+   - You can edit the crop type and farm area for each order by clicking the **View (eye)** icon.
+   - This icon will also allow you to access payment options, display the QR code, and make payments via card.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 4. **Create an Order (Receptionist)**
+   - As a Receptionist, you can place an order on behalf of a Farmer.
+   - On the **Create Order** page, input the Farmer’s phone number. If the phone number exists in the system, the details will be pre-filled. Otherwise, you will need to fill them in manually.
+   - Place the order, and both the Farmer and Receptionist will receive notifications and emails about the new order.
+   - In the **Order Management** page, Receptionists can manage and confirm orders. The **View (eye)** icon lets you access order details, including payment options and assignment of sprayers.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 5. **Automatic Sprayer Assignment (Receptionist)**
+   - On the **Order Management** page, Receptionists can turn on the automatic sprayer assignment slider for any order.
+   - If the slider is enabled, the system will automatically assign the best available Sprayer for that task.
+   - Receptionists also have the option to manually confirm the order created by the Farmer.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 6. **Sprayer Workflow**
+   - Sprayers will see all their assigned orders on the **Order Management** page.
+   - If they don’t want to receive automatic assignments (e.g., they're on vacation or have exclusive tasks), they can disable automatic assignment on the **Order Management** page.
+   - Once an order is assigned, the Sprayer can check the route to the farm by clicking on the **Route** option in the navbar.
+   - During the spray session, the Sprayer can update the status of the order to **In Progress**, and once the job is done and payment is received, mark the order as **Completed**.
 
-### `npm run eject`
+### 7. **Payments and QR Codes**
+   - After a spray order is completed, Sprayers can access the payment section on the **Order Management** page. 
+   - Click on the **View (eye)** icon, then the QR code icon at the top right to generate a QR code for the payment.
+   - Farmers can also use the **View (eye)** icon in their **Order Management** page to open the payment section and scan the QR code for payment.
+   - Farmers will have the additional option of making the payment via card if they prefer.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 8. **Order Management Overview**
+   - On the **Order Management** page:
+     - **Farmers** can see the list of all orders they’ve made.
+     - **Receptionists** can view orders placed by all Farmers, manage them, and confirm the ones that are ready.
+     - **Sprayers** can see the orders assigned to them and manage their work accordingly.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Future Updates
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Additional features such as customizable notifications, advanced reporting, and enhanced user permissions are planned for future releases.
