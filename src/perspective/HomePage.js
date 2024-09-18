@@ -4,12 +4,18 @@ import React from 'react';
 import { Calendar, MapPin, Droplet, ArrowRight, Leaf, Shield, Crop, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './../context/AuthContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleBookSession = () => {
     navigate('/create');
+  };
+
+  const handleOrderManage = () => {
+    navigate('/order-manage');
   };
 
   const features = [
@@ -55,12 +61,21 @@ const HomePage = () => {
           <section className="px-6 py-12 text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome to HoverSprite</h2>
             <p className="text-xl text-gray-600 mb-8">Revolutionizing Agriculture with Precision Drone Spraying</p>
-            <button
+            {user.roles.includes('ROLE_SPRAYER') ? (
+              <button
+              onClick={handleOrderManage}
+              className="bg-green-500 text-white px-6 py-2 rounded-md font-semibold text-lg hover:bg-green-600 transition duration-300"
+            >
+              View Your Assigned Orders!
+            </button>
+            ) : (
+              <button
               onClick={handleBookSession}
               className="bg-green-500 text-white px-6 py-2 rounded-md font-semibold text-lg hover:bg-green-600 transition duration-300"
             >
               Book a Session!
             </button>
+            )}
           </section>
 
           {/* Features Section */}

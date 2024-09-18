@@ -68,12 +68,17 @@ export const sendCreateOrderToAPI = async (createdOrder) => {
     }
 };
 // Modified to accept user
-export const getListOfOrders = async () => {
+export const getListOfOrders = async (page = 0, size = 10, status = null) => {
     try {
-        const response = await api.get('/orders');
+        let url = `/orders?page=${page}&size=${size}`;
+        if (status) {
+            url += `&status=${status}`;
+        }
+        const response = await api.get(url);
         return response.data;
     } catch (error) {
-        console.error('Error updating order:', error);
+        console.error('Error fetching orders:', error);
+        throw error;
     }
 };
 

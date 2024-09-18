@@ -8,31 +8,34 @@ import { useAuth } from '../../context/AuthContext';
 
 const OrderListManagement = () => {
   const [orders, setOrders] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [status, setStatus] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const ordersPerPage = 10;
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await getListOfOrders();
-        setOrders(response);
-        console.log(response);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      }
-    };
+    fetchOrders();
+  }, [currentPage, status]);
 
-    fetchOrders();  
-  }, []);
-
-  const filteredOrders = orders.filter(order =>
-    Object.values(order).some(value =>
-      value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getListOfOrders(currentPage, ordersPerPage, status);
+      console.log(response);
+      setOrders(response.content);
+      setTotalPages(response.totalPages);
+      setTotalElements(response.totalElements);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleViewDetails = (orderId) => {
     navigate(`/order-detail?orderId=${orderId}`);
@@ -42,18 +45,26 @@ const OrderListManagement = () => {
     navigate(`/create`);
   };
 
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const handleStatusChange = (newStatus) => {
+    setStatus(newStatus);
+    setCurrentPage(0);
+  };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handleSearch = () => {
+    setCurrentPage(0);
+    fetchOrders();
+  };
 
   const StatusBadge = ({ status }) => {
     const colorMap = {
       'PENDING': 'bg-yellow-100 text-yellow-800',
-      'CONFIRMED': 'bg-blue-100 text-blue-800',
-      'COMPLETED': 'bg-green-100 text-green-800',
       'CANCELLED': 'bg-red-100 text-red-800',
+      'CONFIRMED': 'bg-blue-100 text-blue-800',
+      'ASSIGN_PROCESSING': 'bg-purple-100 text-purple-800',
+      'ASSIGNED': 'bg-indigo-100 text-indigo-800',
+      'IN_PROGRESS': 'bg-orange-100 text-orange-800',
+      'SPRAY_COMPLETED': 'bg-teal-100 text-teal-800',
+      'COMPLETED': 'bg-green-100 text-green-800'
     };
 
     return (
@@ -133,37 +144,43 @@ const OrderListManagement = () => {
           </div>
           
           <div className="p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-              <div className="relative w-full sm:w-64 mb-4 sm:mb-0">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search orders"
-                  className="pl-10 pr-4 py-2 border rounded-md w-full"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+                <div className="flex space-x-2">
+                  {(user.roles.includes('ROLE_RECEPTIONIST') || user.roles.includes('ROLE_FARMER')) && (
+                    <button 
+                      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex items-center"
+                      onClick={handleCreateNewOrder}
+                    >
+                      <Plus size={16} className="mr-2" />
+                      New Order
+                    </button>
+                  )}
+                  <select
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition duration-300"
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    value={status || ''}
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="ASSIGN_PROCESSING">Assign Processing</option>
+                    <option value="ASSIGNED">Assigned</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="SPRAY_COMPLETED">Spray Completed</option>
+                    <option value="COMPLETED">Completed</option>
+                  </select>
+                </div>
               </div>
-              <div className="flex space-x-2">
-                <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition duration-300 flex items-center"
-                onClick={handleCreateNewOrder}>
-                  <Plus size={16} className="mr-2" />
-                  New Order
-                </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition duration-300">
-                  Filters
-                </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition duration-300">
-                  Sort
-                </button>
-              </div>
-            </div>
 
-
+              {isLoading ? (
+              <div className="text-center py-4">Loading...</div>
+            ) : (
+          <>
             <div className="sm:hidden space-y-4">
-            {currentOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-            ))}
+              {orders.map((order) => (
+                    <OrderCard key={order.id} order={order} />
+                  ))}
             </div>
 
 
@@ -179,7 +196,7 @@ const OrderListManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentOrders.map((order) => (
+                  {orders.map((order) => (
                     <motion.tr 
                       key={order.id}
                       initial={{ opacity: 0 }}
@@ -217,39 +234,40 @@ const OrderListManagement = () => {
               </table>
             </div>
 
-            {/* Pagination */}
             <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} entries
-              </div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => paginate(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                {[...Array(Math.ceil(filteredOrders.length / ordersPerPage)).keys()].map((number) => (
-                  <button
-                    key={number + 1}
-                    onClick={() => paginate(number + 1)}
-                    className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                      currentPage === number + 1 ? 'bg-green-50 text-green-600' : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {number + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => paginate(currentPage + 1)}
-                  disabled={currentPage === Math.ceil(filteredOrders.length / ordersPerPage)}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  Next
-                </button>
-              </nav>
+                  <div className="text-sm text-gray-700">
+                    Showing {currentPage * ordersPerPage + 1} to {Math.min((currentPage + 1) * ordersPerPage, totalElements)} of {totalElements} entries
+                  </div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                      disabled={currentPage === 0}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      Previous
+                    </button>
+                    {[...Array(totalPages).keys()].map((number) => (
+                      <button
+                        key={number}
+                        onClick={() => setCurrentPage(number)}
+                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                          currentPage === number ? 'bg-green-50 text-green-600' : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {number + 1}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                      disabled={currentPage === totalPages - 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      Next
+                    </button>
+                  </nav>
             </div>
+          </>
+            )}
           </div>
         </div>
       </main>

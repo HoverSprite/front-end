@@ -62,31 +62,39 @@ const AnimatedPage = ({ children }) => {
   );
 };
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   
   if (loading) {
-    return <div>Loading...</div>; // Or any loading indicator
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    return <Navigate to="/signin" replace />;
+    return <Navigate to="/signin" replace state={{ from: location }} />;
   }
+
+  if (allowedRoles.length > 0 && !allowedRoles.some(role => user.roles.includes(role))) {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 };
 
 function AppRoutes() {
   const location = useLocation();
-  const { loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <div>Loading...</div>; // Or any loading indicator
   }
 
+  const showNavbar = !['/signin', '/signup', '/role-selection', '/user-details'].includes(location.pathname);
+
   return (
     <>
-    <Navbar/>
-        <AnimatePresence mode="wait">
+      {showNavbar && <Navbar />}
+      <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/signin" element={<AnimatedPage><SignInPage /></AnimatedPage>} />
         <Route path="/signup" element={<AnimatedPage><SignUpPage /></AnimatedPage>} />
@@ -107,7 +115,7 @@ function AppRoutes() {
         <Route
           path="/scan"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ROLE_FARMER']}>
               <AnimatedPage><ScanPage /></AnimatedPage>
             </ProtectedRoute>
           }
@@ -115,16 +123,8 @@ function AppRoutes() {
         <Route
           path="/qr"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ROLE_SPRAYER']}>
               <AnimatedPage><QRCodePage /></AnimatedPage>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/code1"
-          element={
-            <ProtectedRoute>
-              <AnimatedPage><Dashboard /></AnimatedPage>
             </ProtectedRoute>
           }
         />
@@ -137,17 +137,9 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/code4"
-          element={
-            <ProtectedRoute>
-              <AnimatedPage><ShopZenApp /></AnimatedPage>
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/payment"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ROLE_FARMER']}>
               <AnimatedPage><PaymentPage /></AnimatedPage>
             </ProtectedRoute>
           }
@@ -155,7 +147,7 @@ function AppRoutes() {
         <Route
           path="/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['ROLE_FARMER', 'ROLE_RECEPTIONIST']}>
               <AnimatedPage><SprayOrderPage /></AnimatedPage>
             </ProtectedRoute>
           }
@@ -163,19 +155,29 @@ function AppRoutes() {
         <Route
           path="/role-selection"
           element={
-              <AnimatedPage><RoleSelectionPage /></AnimatedPage>
+              user ? (
+                <Navigate to="/" replace />
+              ) : (
+                <AnimatedPage><RoleSelectionPage /></AnimatedPage>
+              )
           }
         />
         <Route
           path="/user-details"
           element={
+            user ? (
+              <Navigate to="/" replace />
+            ) : (
               <AnimatedPage><UserDetailsSignUpPage /></AnimatedPage>
+            )
           }
         />
         <Route
           path="/route"
           element={
+            <ProtectedRoute allowedRoles={['ROLE_SPRAYER']}>
               <AnimatedPage><MapComponent /></AnimatedPage>
+            </ProtectedRoute>
           }
         />
 

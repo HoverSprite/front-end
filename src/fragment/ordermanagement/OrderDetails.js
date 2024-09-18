@@ -490,6 +490,9 @@ const OrderDetails = ({ orderData, onUpdate }) => {
   );
 
   const EditableDateTime = ({ label, dateTimeValue, dateTimeField }) => {
+    if (!dateTimeValue) return null; // Don't render anything if dateTimeValue is null
+
+
     const date = new Date(dateTimeValue);
     const timeSlots = [
       { label: '6:00 AM - 7:00 AM', start: 6 },
@@ -551,6 +554,35 @@ const OrderDetails = ({ orderData, onUpdate }) => {
       </div>
     );
   };
+
+  const isValidCoordinate = (coord) => {
+    return typeof coord === 'number' && !isNaN(coord) && isFinite(coord);
+  };
+
+  const renderMap = () => {
+    if (isValidCoordinate(order.latitude) && isValidCoordinate(order.longitude)) {
+      return (
+        <div className="h-64 mb-4">
+          <MapContainer center={[order.latitude, order.longitude]} zoom={13} style={{ height: '100%', width: '100%' }}>
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <Marker position={[order.latitude, order.longitude]}>
+              <Popup>{order.location}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+      );
+    } else {
+      return (
+        <div className="h-64 mb-4 flex items-center justify-center bg-gray-100 text-gray-500">
+          Map data unavailable
+        </div>
+      );
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -623,29 +655,21 @@ const OrderDetails = ({ orderData, onUpdate }) => {
             <label className="block text-sm font-medium text-gray-700">Cost (VND)</label>
             <p className="mt-1 text-sm text-gray-900">{order.cost.toLocaleString()}</p>
           </div>
-          <EditableDateTime
-            label="Spray Session"
-            dateTimeValue={order.spraySession.date + 'T' + order.spraySession.startTime}
-            dateTimeField="spraySessionDateTime"
-          />
+          {order.spraySession && (
+            <EditableDateTime
+              label="Spray Session"
+              dateTimeValue={order.spraySession.date + 'T' + order.spraySession.startTime}
+              dateTimeField="spraySessionDateTime"
+            />
+          )}
         </div>
 
         <div>
           <h3 className="text-lg font-semibold mb-4">Location</h3>
-          <div className="h-64 mb-4">
-            <MapContainer center={[order.latitude, order.longitude]} zoom={13} style={{ height: '100%', width: '100%' }}>
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-              <Marker position={[order.latitude, order.longitude]}>
-                <Popup>{order.location}</Popup>
-              </Marker>
-            </MapContainer>
-          </div>
+          {renderMap()}
           <p className="text-sm text-gray-700 mb-2">
             <MapPin className="inline mr-2" size={16} />
-            {order.location}
+            {order.location || "Location not specified"}
           </p>
         </div>
       </div>
@@ -737,6 +761,14 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               Confirm
             </button>
           )}
+          {order.status === 'PENDING' && user.roles.includes('ROLE_RECEPTIONIST') && (
+            <button
+              onClick={() => handleStatusChange('CANCELLED')}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Cancel
+            </button>
+          )}
           {order.status === 'ASSIGNED' && user.roles.includes('ROLE_SPRAYER') && (
             <button
               onClick={() => handleStatusChange('IN_PROGRESS')}
@@ -773,7 +805,7 @@ const OrderDetails = ({ orderData, onUpdate }) => {
               </button>
             </>
           ) : (
-            (order.status !== 'IN_PROGRESS' && order.status !== 'SPRAY_COMPLETED' && order.status != 'COMPLETED') && 
+            (order.status !== 'IN_PROGRESS' && order.status !== 'SPRAY_COMPLETED' && order.status != 'COMPLETED' && order.status != 'CANCELLED') && 
             (user.roles.includes('ROLE_RECEPTIONIST') || ( order.status === 'PENDING' && user.roles.includes('ROLE_FARMER'))) && (
               <button
               onClick={handleEdit}

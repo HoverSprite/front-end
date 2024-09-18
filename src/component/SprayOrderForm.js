@@ -154,7 +154,8 @@ const [userId, setUserId] = useState('');
             new Date(new Date(formData.dateTime).getTime() + 60 * 60 * 1000),
             'HH:mm:ss'
           )
-        }
+        },
+        autoAssign: false
       };
   
       const response = await sendCreateOrderToAPI(sprayOrderRequest);
