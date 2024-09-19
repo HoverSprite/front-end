@@ -15,6 +15,11 @@ const NotificationIcon = () => {
   const dropdownRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const isHtmlResponse = (responseData) => {
+    const htmlPattern = /^\s*<!DOCTYPE html>/i;
+    return htmlPattern.test(responseData);
+  };
+
   // Fetch notifications from the server
   const fetchExistingNotifications = useCallback(async () => {
     if (!user) {
@@ -25,7 +30,7 @@ const NotificationIcon = () => {
       const response = await axios.get(`http://localhost:8080/api/notifications`);
       const seenNotifications = JSON.parse(localStorage.getItem(`seenNotifications_${user.sub}`) || '[]');
       console.log(response.data);
-      if (!response.data) {
+      if (isHtmlResponse(response.data)) {
         return;
       }
 
