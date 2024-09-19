@@ -24,6 +24,10 @@ const NotificationIcon = () => {
     try {
       const response = await axios.get(`http://localhost:8080/api/notifications`);
       const seenNotifications = JSON.parse(localStorage.getItem(`seenNotifications_${user.sub}`) || '[]');
+      console.log(response.data);
+      if (!response.data) {
+        return;
+      }
 
       const updatedNotifications = response.data.map(notification => ({
         ...notification,
